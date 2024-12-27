@@ -1,8 +1,9 @@
 import { MoviePoster } from "./MoviePoster";
 import { Card, CardContent } from "@/components/ui/card";
-import { Film, ThumbsUp, ThumbsDown, Info, Tv, Calendar, Tag, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MovieMetadataBubbles } from "./MovieMetadataBubbles";
+import { MovieFeedbackButtons } from "./MovieFeedbackButtons";
+import { getPlatformDisplayName } from "@/utils/platformUtils";
 
 interface MovieProps {
   title: string;
@@ -18,29 +19,6 @@ interface MovieProps {
   onClick?: () => void;
   onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
-
-// Helper function to get platform display name
-const getPlatformDisplayName = (platform: string): string => {
-  const platformMap: { [key: string]: string } = {
-    'netflix': 'Netflix',
-    'hulu': 'Hulu',
-    'amazon': 'Prime Video',
-    'prime': 'Prime Video',
-    'disney': 'Disney+',
-    'disney+': 'Disney+',
-    'hbo': 'HBO Max',
-    'hbomax': 'HBO Max',
-    'apple': 'Apple TV+',
-    'appletv+': 'Apple TV+',
-    'paramount': 'Paramount+',
-    'peacock': 'Peacock',
-    'crunchyroll': 'Crunchyroll',
-    'tubi': 'Tubi'
-  };
-  
-  const normalizedPlatform = platform.toLowerCase().replace(/\s+/g, '');
-  return platformMap[normalizedPlatform] || platform;
-};
 
 export function EnhancedMovieCard({ 
   title, 
@@ -72,35 +50,11 @@ export function EnhancedMovieCard({
         <MoviePoster poster={poster} title={title} onSave={onSave} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
         
-        {/* Metadata Bubbles */}
-        <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-2">
-          {year && (
-            <Badge variant="secondary" className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              {year}
-            </Badge>
-          )}
-          {genre.slice(0, 2).map((g) => (
-            <Badge 
-              key={g} 
-              variant="secondary"
-              className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
-            >
-              <Tag className="h-3 w-3" />
-              {g}
-            </Badge>
-          ))}
-          {streaming.slice(0, 2).map((platform) => (
-            <Badge 
-              key={platform}
-              variant="secondary"
-              className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
-            >
-              <Globe className="h-3 w-3" />
-              {getPlatformDisplayName(platform)}
-            </Badge>
-          ))}
-        </div>
+        <MovieMetadataBubbles
+          year={year}
+          genre={genre}
+          streaming={streaming}
+        />
 
         <div className="absolute bottom-0 left-0 p-4">
           <h3 className="text-xl font-bold text-white">
@@ -134,48 +88,10 @@ export function EnhancedMovieCard({
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-4 border-t border-primary/20">
-          <Badge 
-            variant="secondary" 
-            className="flex items-center space-x-1 bg-primary/10 text-primary"
-          >
-            {type === 'movie' ? (
-              <Film className="h-3 w-3 mr-1" />
-            ) : type === 'show' ? (
-              <Tv className="h-3 w-3 mr-1" />
-            ) : (
-              <Film className="h-3 w-3 mr-1" />
-            )}
-            <span className="capitalize">{type}</span>
-          </Badge>
-          
-          <div className="flex space-x-2">
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="text-primary hover:text-primary hover:bg-primary/20"
-              onClick={(e) => handleFeedback('like', e)}
-            >
-              <ThumbsUp className="h-4 w-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="text-destructive hover:text-destructive hover:bg-destructive/20"
-              onClick={(e) => handleFeedback('dislike', e)}
-            >
-              <ThumbsDown className="h-4 w-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="text-muted-foreground hover:text-foreground hover:bg-muted"
-              onClick={(e) => handleFeedback('info', e)}
-            >
-              <Info className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <MovieFeedbackButtons
+          type={type}
+          onFeedback={handleFeedback}
+        />
       </CardContent>
     </Card>
   );
