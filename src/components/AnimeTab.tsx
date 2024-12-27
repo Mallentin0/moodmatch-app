@@ -24,10 +24,28 @@ export function AnimeTab() {
   const handleSearch = async (searchPrompt: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchPrompt)}&limit=6`);
-      const data = await response.json();
+      // Search multiple pages for more variety
+      const randomPages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
+      let allResults: any[] = [];
 
-      const animeResults = data.data.map((anime: any) => ({
+      for (const page of randomPages) {
+        const response = await fetch(
+          `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchPrompt)}&page=${page}&limit=10`
+        );
+        const data = await response.json();
+        allResults.push(...(data.data || []));
+      }
+
+      // Remove duplicates and randomly select results
+      const uniqueResults = Array.from(
+        new Map(allResults.map(anime => [anime.mal_id, anime])).values()
+      );
+
+      const randomResults = uniqueResults
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6);
+
+      const animeResults = randomResults.map((anime: any) => ({
         title: anime.title,
         year: anime.year?.toString() || 'N/A',
         poster: anime.images.jpg.large_image_url,
