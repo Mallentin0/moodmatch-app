@@ -1,50 +1,100 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Anthropic from "https://esm.sh/@anthropic-ai/sdk@0.14.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function analyzePrompt(prompt: string) {
+  const analysis = {
+    genres: [] as string[],
+    mood: [] as string[],
+    period: null as string | null,
+    streaming: null as string | null,
+  };
+
+  // Genre analysis
+  const genreKeywords = {
+    'comedy': ['funny', 'comedy', 'humorous', 'laugh'],
+    'drama': ['dramatic', 'drama', 'emotional', 'serious'],
+    'action': ['action', 'exciting', 'thriller', 'adventure'],
+    'romance': ['romantic', 'romance', 'love'],
+    'horror': ['horror', 'scary', 'spooky', 'thriller'],
+    'sci-fi': ['sci-fi', 'science fiction', 'futuristic', 'space'],
+  };
+
+  // Mood analysis
+  const moodKeywords = {
+    'uplifting': ['uplifting', 'feel-good', 'inspiring', 'positive'],
+    'dark': ['dark', 'gritty', 'intense', 'serious'],
+    'nostalgic': ['nostalgic', 'classic', 'retro'],
+    'thought-provoking': ['thought-provoking', 'deep', 'philosophical'],
+  };
+
+  // Time period analysis
+  const periodKeywords = {
+    '90s': ['90s', '1990s', 'nineties'],
+    '80s': ['80s', '1980s', 'eighties'],
+    '70s': ['70s', '1970s', 'seventies'],
+    'modern': ['modern', 'recent', 'new', 'latest'],
+    'classic': ['classic', 'old', 'vintage'],
+  };
+
+  // Streaming service analysis
+  const streamingKeywords = {
+    'netflix': ['netflix'],
+    'amazon': ['amazon', 'prime'],
+    'disney': ['disney'],
+    'hulu': ['hulu'],
+  };
+
+  const promptLower = prompt.toLowerCase();
+
+  // Analyze genres
+  Object.entries(genreKeywords).forEach(([genre, keywords]) => {
+    if (keywords.some(keyword => promptLower.includes(keyword))) {
+      analysis.genres.push(genre);
+    }
+  });
+
+  // Analyze mood
+  Object.entries(moodKeywords).forEach(([mood, keywords]) => {
+    if (keywords.some(keyword => promptLower.includes(keyword))) {
+      analysis.mood.push(mood);
+    }
+  });
+
+  // Analyze period
+  Object.entries(periodKeywords).forEach(([period, keywords]) => {
+    if (keywords.some(keyword => promptLower.includes(keyword))) {
+      analysis.period = period;
+    }
+  });
+
+  // Analyze streaming service
+  Object.entries(streamingKeywords).forEach(([service, keywords]) => {
+    if (keywords.some(keyword => promptLower.includes(keyword))) {
+      analysis.streaming = service;
+    }
+  });
+
+  return analysis;
+}
+
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const anthropic = new Anthropic({
-      apiKey: Deno.env.get('CLAUDE_API_KEY')!,
-    });
-
     const { prompt } = await req.json();
+    console.log('Analyzing prompt:', prompt);
 
-    const message = await anthropic.messages.create({
-      model: "claude-3-opus-20240229",
-      max_tokens: 1000,
-      temperature: 0.7,
-      system: `You are a movie recommendation expert. Analyze the user's request and extract key preferences:
-- Genre preferences
-- Mood/tone (e.g., funny, dark, nostalgic)
-- Time period preferences
-- Any specific actors or directors
-- Streaming platform preferences
+    const analysis = analyzePrompt(prompt);
+    console.log('Analysis results:', analysis);
 
-Return a JSON object with these extracted preferences that we can use to search for movies.`,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    });
-
-    // Check if the content is available and is of type TextBlock
-    if (!message.content[0] || !('text' in message.content[0])) {
-      throw new Error('Unexpected response format from Claude');
-    }
-
-    return new Response(JSON.stringify({ analysis: message.content[0].text }), {
+    return new Response(JSON.stringify({ analysis }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
