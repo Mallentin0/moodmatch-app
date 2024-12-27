@@ -5,9 +5,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MovieMetadataBadges } from "./MovieMetadataBadges";
-import { Film, Clock, Star, User, Users, Tv } from "lucide-react";
+import { Film, Clock, Star, User, Users } from "lucide-react";
 import { Badge } from "./ui/badge";
-import { MediaType } from "@/types/media";
 
 interface MovieDialogProps {
   movie: {
@@ -26,7 +25,6 @@ interface MovieDialogProps {
     runtime?: string;
     director?: string;
     actors?: string[];
-    type?: MediaType;
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,17 +34,6 @@ export function MovieDialog({ movie, open, onOpenChange }: MovieDialogProps) {
   if (!movie) return null;
 
   const decade = movie.year ? `${movie.year.slice(0, 3)}0s` : 'Unknown';
-
-  const getTypeIcon = () => {
-    switch (movie.type) {
-      case 'show':
-        return <Tv className="h-4 w-4 text-muted-foreground" />;
-      case 'anime':
-        return <Film className="h-4 w-4 text-muted-foreground" />;
-      default:
-        return <Film className="h-4 w-4 text-muted-foreground" />;
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,7 +66,7 @@ export function MovieDialog({ movie, open, onOpenChange }: MovieDialogProps) {
             {movie.director && (
               <div className="flex items-center space-x-2 text-sm">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span>{movie.type === 'show' ? 'Created by' : 'Directed by'} {movie.director}</span>
+                <span>Directed by {movie.director}</span>
               </div>
             )}
 
@@ -118,7 +105,7 @@ export function MovieDialog({ movie, open, onOpenChange }: MovieDialogProps) {
 
             {movie.streaming && movie.streaming.length > 0 && (
               <div className="flex items-center space-x-2 text-sm text-muted-foreground pt-4 border-t">
-                {getTypeIcon()}
+                <Film className="h-4 w-4" />
                 <span>Available on {movie.streaming.join(", ")}</span>
               </div>
             )}

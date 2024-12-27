@@ -27,37 +27,19 @@ serve(async (req) => {
     const response = await fetch(searchUrl);
     const data = await response.json();
 
-    // Transform the results to match our Media type format
-    const showResults = await Promise.all(data.results.slice(0, 6).map(async (show: any) => {
-      // Get additional show details
-      const detailsUrl = `https://api.themoviedb.org/3/tv/${show.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`;
-      const detailsResponse = await fetch(detailsUrl);
-      const details = await detailsResponse.json();
-
-      // Extract streaming providers (US region)
-      const providers = details['watch/providers']?.results?.US?.flatrate || [];
-      const streamingPlatforms = providers.map((p: any) => p.provider_name);
-
-      return {
-        title: show.name,
-        year: show.first_air_date?.split('-')[0] || 'N/A',
-        poster: show.poster_path 
-          ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-          : 'https://via.placeholder.com/500x750?text=No+Poster',
-        synopsis: show.overview || 'No synopsis available',
-        streaming: streamingPlatforms,
-        genre: details.genres?.map((g: any) => g.name) || [],
-        tone: searchParams.tone || [],
-        theme: searchParams.theme || [],
-        type: 'show' as const,
-        ratings: [{
-          source: 'TMDB',
-          value: `${Math.round(show.vote_average * 10) / 10}/10`
-        }],
-        runtime: `${details.number_of_seasons} season${details.number_of_seasons !== 1 ? 's' : ''}`,
-        director: details.created_by?.[0]?.name || 'Unknown',
-        actors: details.credits?.cast?.slice(0, 3).map((actor: any) => actor.name) || []
-      };
+    // Transform the results to match our existing movie format
+    const showResults = data.results.map((show: any) => ({
+      title: show.name,
+      year: show.first_air_date?.split('-')[0] || 'N/A',
+      poster: show.poster_path 
+        ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+        : 'https://via.placeholder.com/500x750?text=No+Poster',
+      synopsis: show.overview || 'No synopsis available',
+      streaming: [],
+      genre: show.genre_ids?.map((id: number) => id.toString()) || [],
+      tone: searchParams.tone || [],
+      theme: searchParams.theme || [],
+      type: 'show'
     }));
 
     console.log('Processed TV show results:', showResults);
