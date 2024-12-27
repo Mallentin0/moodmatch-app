@@ -3,18 +3,7 @@ import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
 import { MovieDialog } from "@/components/MovieDialog";
 import { useState } from "react";
-
-interface Movie {
-  title: string;
-  year: string;
-  poster: string;
-  synopsis: string;
-  streaming?: string[];
-  theme?: string[];
-  genre?: string[];
-  tone?: string[];
-  type?: 'movie' | 'show';
-}
+import { Movie } from "@/types/media";
 
 interface MovieResultsProps {
   isLoading: boolean;
