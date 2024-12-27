@@ -139,11 +139,28 @@ const Index = () => {
 
       <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
-            <TabsTrigger value="movie" className="text-sm sm:text-base">Movies</TabsTrigger>
-            <TabsTrigger value="tvshow" className="text-sm sm:text-base">TV Shows</TabsTrigger>
-            <TabsTrigger value="anime" className="text-sm sm:text-base">Anime</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center w-full mb-6">
+            <TabsList className="grid w-full max-w-md grid-cols-3 bg-secondary">
+              <TabsTrigger 
+                value="movie" 
+                className="text-sm sm:text-base data-[state=active]:bg-[#EB3361] data-[state=active]:text-white"
+              >
+                Movies
+              </TabsTrigger>
+              <TabsTrigger 
+                value="tvshow" 
+                className="text-sm sm:text-base data-[state=active]:bg-[#EB3361] data-[state=active]:text-white"
+              >
+                TV Shows
+              </TabsTrigger>
+              <TabsTrigger 
+                value="anime" 
+                className="text-sm sm:text-base data-[state=active]:bg-[#EB3361] data-[state=active]:text-white"
+              >
+                Anime
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="movie" className="mt-6">
             <SearchSection
