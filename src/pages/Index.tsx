@@ -204,7 +204,25 @@ const Index = () => {
         </Tabs>
       </main>
 
-      <KofiButton />
+      <div id="ko-fi-container"></div>
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          (function() {
+            var script = document.createElement('script');
+            script.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
+            script.onload = function() {
+              window.kofiWidgetOverlay.draw('R6R4181VNL', {
+                'type': 'floating-chat',
+                'floating-chat.donateButton.text': 'Donate',
+                'floating-chat.donateButton.background-color': '#ff5f5f',
+                'floating-chat.donateButton.text-color': '#fff'
+              });
+            };
+            document.body.appendChild(script);
+          })();
+        `
+      }} />
+
       <Footer />
 
       <AuthDialog 
