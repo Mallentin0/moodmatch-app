@@ -5,10 +5,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MovieMetadataBadges } from "./MovieMetadataBadges";
-import { Film, Clock, Star, User, Users, Calendar, Award, Globe, Tv } from "lucide-react";
+import { Film, Clock, Star, User, Users, Calendar, Award, Globe, Tv, PlayCircle } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
+import { Alert, AlertDescription } from "./ui/alert";
 
 interface MovieDialogProps {
   movie: {
@@ -63,6 +64,23 @@ export function MovieDialog({ movie, open, onOpenChange }: MovieDialogProps) {
         </DialogHeader>
         
         <ScrollArea className="max-h-[calc(90vh-8rem)]">
+          {/* Streaming Platforms Alert */}
+          {movie.streaming && movie.streaming.length > 0 ? (
+            <Alert className="mb-6 bg-primary/10 border-primary">
+              <PlayCircle className="h-5 w-5 text-primary" />
+              <AlertDescription className="text-primary font-medium">
+                Available to watch on: {movie.streaming.join(", ")}
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert className="mb-6 bg-muted/50">
+              <PlayCircle className="h-5 w-5" />
+              <AlertDescription>
+                No streaming information available
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pr-4">
             <div className="relative aspect-[2/3] overflow-hidden rounded-lg">
               <img
@@ -147,13 +165,6 @@ export function MovieDialog({ movie, open, onOpenChange }: MovieDialogProps) {
                   decade={decade}
                 />
               </div>
-
-              {movie.streaming && movie.streaming.length > 0 && (
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground pt-4 border-t">
-                  <Film className="h-4 w-4" />
-                  <span>Available on {movie.streaming.join(", ")}</span>
-                </div>
-              )}
             </div>
           </div>
         </ScrollArea>
