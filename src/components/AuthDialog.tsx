@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useState } from "react";
 
 interface AuthDialogProps {
   open: boolean;
@@ -15,19 +16,29 @@ interface AuthDialogProps {
 }
 
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
+  const [view, setView] = useState<'sign_in' | 'sign_up'>('sign_in');
+
+  const getDescription = () => {
+    return view === 'sign_in' 
+      ? "Login to save your movie recommendations"
+      : "Create an account to save your movie recommendations";
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md glass-card">
+      <DialogContent className="sm:max-w-[450px] glass-card">
         <DialogHeader className="text-center">
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
             Welcome to MoodMatch
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Create an account to save your movie recommendations
+            {getDescription()}
           </DialogDescription>
         </DialogHeader>
         <Auth
           supabaseClient={supabase}
+          view={view}
+          onViewChange={({ view }) => setView(view as 'sign_in' | 'sign_up')}
           appearance={{
             theme: ThemeSupa,
             variables: {
@@ -59,6 +70,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                 border: '1px solid transparent',
                 fontWeight: '500',
                 padding: '0.5rem 1rem',
+                width: '100%',
               },
               anchor: {
                 color: 'hsl(var(--primary))',
@@ -69,6 +81,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               },
               container: {
                 alignItems: 'center',
+                width: '100%',
               },
               label: {
                 color: 'hsl(var(--foreground))',
@@ -77,6 +90,8 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               input: {
                 backgroundColor: 'hsl(var(--background))',
                 color: 'hsl(var(--foreground))',
+                width: '100%',
+                minWidth: '300px',
               },
             },
           }}
