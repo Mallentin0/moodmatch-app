@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { LogIn } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { LogIn } from 'lucide-react';
 
 interface HeaderProps {
   onSignInClick: () => void;
@@ -29,7 +29,7 @@ export function Header({ onSignInClick }: HeaderProps) {
           className="flex items-center gap-2"
         >
           <LogIn className="w-4 h-4" />
-          Support
+          Sign in
         </Button>
       </div>
 
