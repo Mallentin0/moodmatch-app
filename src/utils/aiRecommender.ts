@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const analyzeUserPrompt = async (prompt: string): Promise<string> => {
   const anthropic = new Anthropic({
-    apiKey: process.env.CLAUDE_API_KEY,
+    apiKey: import.meta.env.VITE_CLAUDE_API_KEY,
   });
 
   const message = await anthropic.messages.create({
