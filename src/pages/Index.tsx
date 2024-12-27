@@ -164,12 +164,12 @@ const Index = () => {
         </Card>
 
         {results.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center py-4 px-6 bg-card/50 rounded-lg backdrop-blur-sm border border-primary/10 shadow-lg animate-fade-in">
             {REFINEMENT_OPTIONS.map((option) => (
               <Badge
                 key={option.label}
                 variant="secondary"
-                className="cursor-pointer hover:bg-primary/20 transition-colors"
+                className="px-4 py-2 text-sm font-medium cursor-pointer hover:bg-primary/20 hover:text-primary transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95"
                 onClick={() => handleRefinement(option.prompt)}
               >
                 {option.label}
