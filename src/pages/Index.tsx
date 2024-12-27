@@ -17,7 +17,7 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
-  type?: 'movie' | 'show';
+  type?: 'movie' | 'show' | 'anime';
 }
 
 const REFINEMENT_OPTIONS = {
@@ -28,6 +28,13 @@ const REFINEMENT_OPTIONS = {
     { label: "More dramatic", prompt: "but more dramatic" },
     { label: "More romantic", prompt: "with more romance" },
   ],
+  show: [
+    { label: "More like this", prompt: "similar TV shows" },
+    { label: "More drama", prompt: "more dramatic TV shows" },
+    { label: "More comedy", prompt: "funnier TV shows" },
+    { label: "More action", prompt: "more action-packed TV shows" },
+    { label: "More suspense", prompt: "more suspenseful TV shows" },
+  ],
   anime: [
     { label: "More like this", prompt: "similar anime" },
     { label: "More action", prompt: "more action anime" },
@@ -37,13 +44,15 @@ const REFINEMENT_OPTIONS = {
   ]
 };
 
+type MediaType = 'movie' | 'show' | 'anime';
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<Movie[]>([]);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [lastPrompt, setLastPrompt] = useState("");
-  const [activeTab, setActiveTab] = useState<'movie' | 'anime'>('movie');
+  const [activeTab, setActiveTab] = useState<MediaType>('movie');
   const { toast } = useToast();
 
   const handleSignIn = () => {
@@ -56,10 +65,16 @@ const Index = () => {
     console.log(`Searching for ${activeTab} with prompt:`, finalPrompt);
     
     try {
-      const { data, error } = await supabase.functions.invoke(
-        activeTab === 'movie' ? 'search-movies' : 'search-anime', 
-        { body: { prompt: finalPrompt } }
-      );
+      let endpoint = 'search-movies';
+      if (activeTab === 'anime') {
+        endpoint = 'search-anime';
+      } else if (activeTab === 'show') {
+        endpoint = 'search-shows';
+      }
+
+      const { data, error } = await supabase.functions.invoke(endpoint, { 
+        body: { prompt: finalPrompt } 
+      });
       
       if (error) {
         console.error(`Error searching ${activeTab}:`, error);
@@ -153,7 +168,7 @@ const Index = () => {
   };
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value as 'movie' | 'anime');
+    setActiveTab(value as MediaType);
     setResults([]);
     setLastPrompt("");
   };
@@ -164,12 +179,23 @@ const Index = () => {
 
       <main className="flex-grow flex flex-col p-6 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
             <TabsTrigger value="movie">Movies</TabsTrigger>
+            <TabsTrigger value="show">TV Shows</TabsTrigger>
             <TabsTrigger value="anime">Anime</TabsTrigger>
           </TabsList>
 
           <TabsContent value="movie">
+            <SearchSection
+              activeTab={activeTab}
+              prompt={prompt}
+              isLoading={isLoading}
+              onPromptChange={setPrompt}
+              onSubmit={handleSubmit}
+            />
+          </TabsContent>
+
+          <TabsContent value="show">
             <SearchSection
               activeTab={activeTab}
               prompt={prompt}
