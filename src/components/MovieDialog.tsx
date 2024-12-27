@@ -5,7 +5,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MovieMetadataBadges } from "./MovieMetadataBadges";
-import { Film } from "lucide-react";
+import { Film, Clock, Star, User, Users } from "lucide-react";
+import { Badge } from "./ui/badge";
 
 interface MovieDialogProps {
   movie: {
@@ -17,6 +18,13 @@ interface MovieDialogProps {
     genre?: string[];
     tone?: string[];
     theme?: string[];
+    ratings?: {
+      source: string;
+      value: string;
+    }[];
+    runtime?: string;
+    director?: string;
+    actors?: string[];
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,6 +55,45 @@ export function MovieDialog({ movie, open, onOpenChange }: MovieDialogProps) {
           
           <div className="space-y-4">
             <p className="text-muted-foreground">{movie.synopsis}</p>
+            
+            {movie.runtime && (
+              <div className="flex items-center space-x-2 text-sm">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>{movie.runtime}</span>
+              </div>
+            )}
+
+            {movie.director && (
+              <div className="flex items-center space-x-2 text-sm">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>Directed by {movie.director}</span>
+              </div>
+            )}
+
+            {movie.actors && movie.actors.length > 0 && (
+              <div className="flex items-center space-x-2 text-sm">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>Starring {movie.actors.join(', ')}</span>
+              </div>
+            )}
+
+            {movie.ratings && movie.ratings.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs text-muted-foreground">Ratings</span>
+                <div className="flex flex-wrap gap-2">
+                  {movie.ratings.map((rating) => (
+                    <Badge 
+                      key={rating.source} 
+                      variant="secondary"
+                      className="flex items-center space-x-1"
+                    >
+                      <Star className="h-3 w-3" />
+                      <span>{rating.source}: {rating.value}</span>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <MovieMetadataBadges
               genre={movie.genre || []}

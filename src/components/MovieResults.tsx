@@ -13,15 +13,17 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
+  type?: 'movie' | 'show';
 }
 
 interface MovieResultsProps {
   isLoading: boolean;
   results: Movie[];
   onSaveMovie: (movie: Movie) => void;
+  onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
 
-export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsProps) {
+export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: MovieResultsProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -30,12 +32,17 @@ export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsPr
     setDialogOpen(true);
   };
 
+  // Filter out any results with "Hentai" in their genres
+  const filteredResults = results.filter(movie => 
+    !movie.genre?.some(g => g.toLowerCase() === 'hentai')
+  );
+
   return (
     <>
       <AnimatePresence mode="wait">
         {isLoading ? (
           <LoadingState key="loading" />
-        ) : results.length > 0 ? (
+        ) : filteredResults.length > 0 ? (
           <motion.div
             key="results"
             initial={{ opacity: 0 }}
@@ -43,12 +50,13 @@ export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsPr
             exit={{ opacity: 0 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
           >
-            {results.map((movie, index) => (
+            {filteredResults.map((movie, index) => (
               <EnhancedMovieCard 
                 key={`${movie.title}-${index}`}
                 {...movie} 
                 onSave={() => onSaveMovie(movie)}
                 onClick={() => handleMovieClick(movie)}
+                onFeedback={onFeedback}
               />
             ))}
           </motion.div>

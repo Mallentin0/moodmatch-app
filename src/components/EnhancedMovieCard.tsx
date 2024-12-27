@@ -1,8 +1,9 @@
 import { MoviePoster } from "./MoviePoster";
 import { MovieMetadataBadges } from "./MovieMetadataBadges";
 import { Card, CardContent } from "@/components/ui/card";
-import { Film, ThumbsUp, ThumbsDown, Info } from "lucide-react";
+import { Film, ThumbsUp, ThumbsDown, Info, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface MovieProps {
   title: string;
@@ -13,8 +14,10 @@ interface MovieProps {
   genre?: string[];
   tone?: string[];
   theme?: string[];
+  type?: 'movie' | 'show';
   onSave?: () => void;
   onClick?: () => void;
+  onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
 
 export function EnhancedMovieCard({ 
@@ -26,10 +29,19 @@ export function EnhancedMovieCard({
   genre = [],
   tone = [],
   theme = [],
+  type = 'movie',
   onSave,
-  onClick
+  onClick,
+  onFeedback
 }: MovieProps) {
   const decade = year ? `${year.slice(0, 3)}0s` : 'Unknown';
+
+  const handleFeedback = (feedbackType: 'like' | 'dislike' | 'info', e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onFeedback) {
+      onFeedback(feedbackType, title);
+    }
+  };
 
   return (
     <Card 
@@ -58,21 +70,48 @@ export function EnhancedMovieCard({
         />
 
         <div className="flex justify-between items-center pt-4 border-t border-primary/20">
-          {streaming.length > 0 && (
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Film className="h-4 w-4" />
-              <span>{streaming.join(", ")}</span>
-            </div>
-          )}
+          <div className="flex items-center space-x-2">
+            <Badge 
+              variant="secondary" 
+              className="flex items-center space-x-1 bg-primary/10 text-primary"
+            >
+              {type === 'movie' ? (
+                <Film className="h-3 w-3 mr-1" />
+              ) : (
+                <Tv className="h-3 w-3 mr-1" />
+              )}
+              <span className="capitalize">{type}</span>
+            </Badge>
+            {streaming.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                on {streaming.join(", ")}
+              </span>
+            )}
+          </div>
           
-          <div className="flex space-x-2 ml-auto" onClick={(e) => e.stopPropagation()}>
-            <Button size="sm" variant="ghost" className="text-primary hover:text-primary hover:bg-primary/20">
+          <div className="flex space-x-2 ml-auto">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-primary hover:text-primary hover:bg-primary/20"
+              onClick={(e) => handleFeedback('like', e)}
+            >
               <ThumbsUp className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/20">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-destructive hover:text-destructive hover:bg-destructive/20"
+              onClick={(e) => handleFeedback('dislike', e)}
+            >
               <ThumbsDown className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-muted-foreground hover:text-foreground hover:bg-muted"
+              onClick={(e) => handleFeedback('info', e)}
+            >
               <Info className="h-4 w-4" />
             </Button>
           </div>
