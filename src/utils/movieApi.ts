@@ -3,7 +3,11 @@ import { z } from "zod";
 const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzZDBjZGE0NDY2ZjI2OWU3OTNlOTI4M2YzZTdkNDliMSIsInN1YiI6IjY1OGJkNjc3ZWY5ZDcyNmY4ZmM5ZjVhYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Hs-Wh_vTdZBvhGVarSVhyGUgBQqM0g0Sy4FAhWuBHSo";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 
-const tmdbFetch = async (endpoint: string, options = {}) => {
+interface RequestOptions extends RequestInit {
+  headers?: HeadersInit;
+}
+
+const tmdbFetch = async (endpoint: string, options: RequestOptions = {}) => {
   const response = await fetch(`${TMDB_BASE_URL}${endpoint}`, {
     ...options,
     headers: {
