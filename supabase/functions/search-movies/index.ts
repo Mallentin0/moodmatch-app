@@ -22,6 +22,14 @@ serve(async (req) => {
     const searchParams = await analyzePrompt(prompt);
     console.log('Parsed search parameters:', searchParams);
 
+    // Extract streaming platforms from the prompt
+    const streamingPlatforms = [
+      'Netflix', 'Hulu', 'Amazon Prime Video', 'Disney+', 
+      'HBO Max', 'Apple TV+', 'Paramount+', 'Peacock', 'Crunchyroll'
+    ].filter(platform => 
+      prompt.toLowerCase().includes(platform.toLowerCase())
+    );
+
     // Get multiple random pages to increase variety
     const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
     const allResults = [];
@@ -49,9 +57,9 @@ serve(async (req) => {
     // Shuffle and take 6 random results
     const shuffledResults = allResults
       .sort(() => Math.random() - 0.5)
-      .slice(0, 6);
+      .slice(0, 12); // Get more results initially to filter by streaming
 
-    // Transform the results
+    // Transform and filter the results based on streaming platforms
     const movies: MovieResult[] = await Promise.all(
       shuffledResults.map(async (movie: any) => {
         console.log('Processing movie:', movie.title);
@@ -59,15 +67,20 @@ serve(async (req) => {
         
         // Extract streaming providers (US region)
         const providers = details['watch/providers']?.results?.US?.flatrate || [];
-        
-        // Filter streaming providers if specific platforms were requested
-        const streamingProviders = searchParams.streaming?.length > 0
-          ? providers.filter((p: any) => 
-              searchParams.streaming.some((requested: string) => 
-                p.provider_name.toLowerCase().includes(requested.toLowerCase())
-              )
+        const movieStreamingPlatforms = providers.map((p: any) => p.provider_name);
+
+        // If streaming platforms were specified in the prompt, check if the movie is available on any of them
+        if (streamingPlatforms.length > 0) {
+          const hasRequestedPlatform = movieStreamingPlatforms.some(platform =>
+            streamingPlatforms.some(requested => 
+              platform.toLowerCase().includes(requested.toLowerCase())
             )
-          : providers;
+          );
+          
+          if (!hasRequestedPlatform) {
+            return null; // Skip this movie if it's not available on requested platforms
+          }
+        }
         
         return {
           title: movie.title,
@@ -76,15 +89,21 @@ serve(async (req) => {
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
             : 'https://via.placeholder.com/500x750?text=No+Poster',
           synopsis: movie.overview || 'No synopsis available',
-          streaming: streamingProviders.map((provider: any) => provider.provider_name)
+          streaming: movieStreamingPlatforms,
+          genre: details.genres?.map((g: any) => g.name) || [],
+          tone: searchParams.tone || [],
+          theme: searchParams.theme || []
         };
       })
     );
 
-    console.log('Final movies response:', movies);
+    // Filter out null results and take up to 6 movies
+    const filteredMovies = movies.filter(movie => movie !== null).slice(0, 6);
+
+    console.log('Final movies response:', filteredMovies);
 
     return new Response(
-      JSON.stringify({ movies }),
+      JSON.stringify({ movies: filteredMovies }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

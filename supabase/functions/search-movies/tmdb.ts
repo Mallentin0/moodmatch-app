@@ -5,7 +5,10 @@ export interface MovieResult {
   year: string;
   poster: string;
   synopsis: string;
-  streaming: string[];
+  streaming?: string[];
+  genre?: string[];
+  tone?: string[];
+  theme?: string[];
 }
 
 export async function fetchMovieDetails(movieId: number): Promise<any> {
