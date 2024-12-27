@@ -16,7 +16,7 @@ export function Footer() {
               rel="noreferrer"
               className="font-medium underline underline-offset-4"
             >
-              Mallentin
+              Mallentino
             </a>
             . © {currentYear} All rights reserved.
           </p>
