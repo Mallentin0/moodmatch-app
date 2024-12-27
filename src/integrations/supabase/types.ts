@@ -66,6 +66,66 @@ export type Database = {
         }
         Relationships: []
       }
+      tv_shows: {
+        Row: {
+          created_at: string | null
+          first_air_date: string | null
+          genres: string[] | null
+          id: string
+          imdb_id: string | null
+          original_title: string | null
+          overview: string | null
+          popularity: number | null
+          poster_path: string | null
+          streaming_platforms: string[] | null
+          themes: string[] | null
+          title: string
+          tmdb_id: number | null
+          tones: string[] | null
+          updated_at: string | null
+          vote_average: number | null
+          vote_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          first_air_date?: string | null
+          genres?: string[] | null
+          id?: string
+          imdb_id?: string | null
+          original_title?: string | null
+          overview?: string | null
+          popularity?: number | null
+          poster_path?: string | null
+          streaming_platforms?: string[] | null
+          themes?: string[] | null
+          title: string
+          tmdb_id?: number | null
+          tones?: string[] | null
+          updated_at?: string | null
+          vote_average?: number | null
+          vote_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          first_air_date?: string | null
+          genres?: string[] | null
+          id?: string
+          imdb_id?: string | null
+          original_title?: string | null
+          overview?: string | null
+          popularity?: number | null
+          poster_path?: string | null
+          streaming_platforms?: string[] | null
+          themes?: string[] | null
+          title?: string
+          tmdb_id?: number | null
+          tones?: string[] | null
+          updated_at?: string | null
+          vote_average?: number | null
+          vote_count?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
