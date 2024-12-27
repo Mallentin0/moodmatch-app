@@ -34,16 +34,23 @@ serve(async (req) => {
 
     console.log('Search query:', searchQuery);
 
-    // Search TV shows using TMDB API
+    // Search TV shows using TMDB API - specifically for TV shows
     const tmdbResponse = await fetch(
-      `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchQuery)}&page=1`
+      `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchQuery)}&page=1&include_adult=false`
     );
     const tmdbData = await tmdbResponse.json();
+    console.log('TMDB API response:', tmdbData);
     
     // Process TMDB results
     const tmdbShows = await Promise.all((tmdbData.results || []).slice(0, 3).map(async (show: any) => {
       try {
-        // Get additional details from OMDB
+        // Get additional details from TMDB TV endpoint
+        const detailsResponse = await fetch(
+          `https://api.themoviedb.org/3/tv/${show.id}?api_key=${TMDB_API_KEY}`
+        );
+        const details = await detailsResponse.json();
+
+        // Get OMDB data for additional metadata
         const omdbResponse = await fetch(
           `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(show.name)}&type=series`
         );
@@ -59,7 +66,7 @@ serve(async (req) => {
           streaming: [], // Could be enhanced with a streaming availability API
           genre: show.genre_ids ? show.genre_ids.map((id: number) => getGenreName(id)) : [],
           tone: searchParams.mood ? [searchParams.mood] : [],
-          theme: omdbData.Genre ? omdbData.Genre.split(', ') : [],
+          theme: details.genres?.map((g: any) => g.name) || [],
           type: 'show' as const
         };
       } catch (error) {
@@ -68,11 +75,12 @@ serve(async (req) => {
       }
     }));
 
-    // Search TV shows using OMDB API directly
+    // Search TV shows using OMDB API - specifically for series
     const omdbResponse = await fetch(
       `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(searchQuery)}&type=series`
     );
     const omdbData = await omdbResponse.json();
+    console.log('OMDB API response:', omdbData);
     
     // Process OMDB results
     const omdbShows = await Promise.all(
