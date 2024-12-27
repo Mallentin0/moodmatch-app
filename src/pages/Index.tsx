@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchSection } from "@/components/SearchSection";
 import { RefinementOptions } from "@/components/RefinementOptions";
+import { TVShowsTab } from "@/components/TVShowsTab";
 
 interface Movie {
   title: string;
@@ -38,12 +39,12 @@ const REFINEMENT_OPTIONS = {
 };
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<'movie' | 'anime' | 'tvshow'>('movie');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<Movie[]>([]);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [lastPrompt, setLastPrompt] = useState("");
-  const [activeTab, setActiveTab] = useState<'movie' | 'anime'>('movie');
   const { toast } = useToast();
 
   const handleSignIn = () => {
@@ -53,48 +54,24 @@ const Index = () => {
   const handleSearch = async (searchPrompt: string, isRefinement = false) => {
     setIsLoading(true);
     const finalPrompt = isRefinement ? `${lastPrompt} ${searchPrompt}` : searchPrompt;
-    console.log(`Searching for ${activeTab} with prompt:`, finalPrompt);
     
     try {
       const { data, error } = await supabase.functions.invoke(
-        activeTab === 'movie' ? 'search-movies' : 'search-anime', 
+        'search-movies',
         { body: { prompt: finalPrompt } }
       );
       
-      if (error) {
-        console.error(`Error searching ${activeTab}:`, error);
-        toast({
-          title: "Error",
-          description: `Failed to get ${activeTab} recommendations. Please try again.`,
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
 
       if (!data?.movies || !Array.isArray(data.movies)) {
-        console.error('Invalid response format:', data);
-        toast({
-          title: "Error",
-          description: "Received invalid response format from server",
-          variant: "destructive",
-        });
-        return;
+        throw new Error('Invalid response format');
       }
 
       const filteredResults = data.movies.filter(movie => 
         !movie.genre?.some(g => g.toLowerCase() === 'hentai')
       );
 
-      const sortedResults = [...filteredResults].sort((a, b) => {
-        const aHasThemes = a.theme && a.theme.length > 0;
-        const bHasThemes = b.theme && b.theme.length > 0;
-        
-        if (aHasThemes && !bHasThemes) return -1;
-        if (!aHasThemes && bHasThemes) return 1;
-        return 0;
-      });
-
-      setResults(sortedResults);
+      setResults(filteredResults);
       setLastPrompt(finalPrompt);
     } catch (error) {
       console.error('Error:', error);
@@ -160,7 +137,7 @@ const Index = () => {
   };
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value as 'movie' | 'anime');
+    setActiveTab(value as 'movie' | 'anime' | 'tvshow');
     setResults([]);
     setLastPrompt("");
   };
@@ -171,45 +148,60 @@ const Index = () => {
 
       <main className="flex-grow flex flex-col p-6 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
             <TabsTrigger value="movie">Movies</TabsTrigger>
+            <TabsTrigger value="tvshow">TV Shows</TabsTrigger>
             <TabsTrigger value="anime">Anime</TabsTrigger>
           </TabsList>
 
           <TabsContent value="movie">
             <SearchSection
-              activeTab={activeTab}
+              activeTab="movie"
               prompt={prompt}
               isLoading={isLoading}
               onPromptChange={setPrompt}
               onSubmit={handleSubmit}
             />
+            {results.length > 0 && (
+              <RefinementOptions
+                options={REFINEMENT_OPTIONS.movie}
+                onRefinement={handleRefinement}
+              />
+            )}
+            <MovieResults 
+              isLoading={isLoading}
+              results={results}
+              onSaveMovie={handleSave}
+              onFeedback={handleFeedback}
+            />
+          </TabsContent>
+
+          <TabsContent value="tvshow">
+            <TVShowsTab />
           </TabsContent>
 
           <TabsContent value="anime">
             <SearchSection
-              activeTab={activeTab}
+              activeTab="anime"
               prompt={prompt}
               isLoading={isLoading}
               onPromptChange={setPrompt}
               onSubmit={handleSubmit}
             />
+            {results.length > 0 && (
+              <RefinementOptions
+                options={REFINEMENT_OPTIONS.anime}
+                onRefinement={handleRefinement}
+              />
+            )}
+            <MovieResults 
+              isLoading={isLoading}
+              results={results}
+              onSaveMovie={handleSave}
+              onFeedback={handleFeedback}
+            />
           </TabsContent>
         </Tabs>
-
-        {results.length > 0 && (
-          <RefinementOptions
-            options={REFINEMENT_OPTIONS[activeTab]}
-            onRefinement={handleRefinement}
-          />
-        )}
-
-        <MovieResults 
-          isLoading={isLoading}
-          results={results}
-          onSaveMovie={handleSave}
-          onFeedback={handleFeedback}
-        />
       </main>
 
       <AuthDialog 
