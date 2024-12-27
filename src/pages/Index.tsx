@@ -35,6 +35,10 @@ const Index = () => {
             poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "/placeholder.svg",
             synopsis: movie.overview || "No synopsis available",
             streaming: details.watch?.providers?.results?.US?.flatrate?.map((p: any) => p.provider_name) || [],
+            ratings: details.ratings || [],
+            director: details.director,
+            actors: details.actors,
+            awards: details.awards,
           });
         })
       );
@@ -77,6 +81,10 @@ const Index = () => {
                   poster={movie.poster}
                   synopsis={movie.synopsis}
                   streaming={movie.streaming}
+                  ratings={movie.ratings}
+                  director={movie.director}
+                  actors={movie.actors}
+                  awards={movie.awards}
                 />
               ))}
             </div>
