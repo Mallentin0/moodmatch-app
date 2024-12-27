@@ -54,16 +54,22 @@ serve(async (req) => {
     const searchParams = JSON.parse(claudeData.content[0].text);
     console.log('Parsed search parameters:', searchParams);
 
-    // Use the analyzed parameters to search TMDB
+    // Get a random page number between 1 and 5 to vary results
+    const randomPage = Math.floor(Math.random() * 5) + 1;
+    
+    // Use the analyzed parameters to search TMDB with different sorting options
     console.log('Calling TMDB API...');
-    let searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false`;
+    const sortOptions = ['popularity.desc', 'vote_average.desc', 'revenue.desc'];
+    const randomSort = sortOptions[Math.floor(Math.random() * sortOptions.length)];
+    
+    let searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=${randomSort}&include_adult=false&page=${randomPage}`;
     
     // Add search parameters if they exist
     if (searchParams.searchQuery && searchParams.searchQuery !== "popular") {
       searchUrl += `&with_keywords=${encodeURIComponent(searchParams.searchQuery)}`;
     }
     if (searchParams.year) {
-      searchUrl += `&year=${searchParams.year}`;
+      searchUrl += `&primary_release_year=${searchParams.year}`;
     }
     if (searchParams.genre) {
       searchUrl += `&with_genres=${searchParams.genre}`;
@@ -71,13 +77,7 @@ serve(async (req) => {
     
     console.log('TMDB URL:', searchUrl);
     
-    const searchResponse = await fetch(searchUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
+    const searchResponse = await fetch(searchUrl);
     const searchData = await searchResponse.json();
     console.log('TMDB search response:', searchData);
     
@@ -85,18 +85,24 @@ serve(async (req) => {
       throw new Error('Invalid TMDB API response');
     }
 
-    // If no results found, fetch popular movies as fallback
+    // If no results found, try a different approach
     if (searchData.results.length === 0) {
-      console.log('No results found, fetching popular movies as fallback...');
-      const fallbackUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US`;
+      console.log('No results found, trying alternative search...');
+      // Try searching with just the genre or a broader time period
+      const fallbackUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&page=${randomPage}${searchParams.genre ? `&with_genres=${searchParams.genre}` : ''}`;
       const fallbackResponse = await fetch(fallbackUrl);
       const fallbackData = await fallbackResponse.json();
       searchData.results = fallbackData.results;
     }
 
+    // Shuffle the results array to get random selections
+    const shuffledResults = searchData.results
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 6);
+
     // Transform and limit the results
     const movies = await Promise.all(
-      searchData.results.slice(0, 6).map(async (movie: any) => {
+      shuffledResults.map(async (movie: any) => {
         console.log('Processing movie:', movie.title);
         
         // Get more details for each movie
@@ -142,19 +148,22 @@ serve(async (req) => {
     // In case of any error, return popular movies as fallback
     try {
       console.log('Error occurred, fetching popular movies as fallback...');
-      const fallbackUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US`;
+      const fallbackUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US&page=${Math.floor(Math.random() * 5) + 1}`;
       const fallbackResponse = await fetch(fallbackUrl);
       const fallbackData = await fallbackResponse.json();
       
-      const movies = fallbackData.results.slice(0, 6).map((movie: any) => ({
-        title: movie.title,
-        year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
-        poster: movie.poster_path 
-          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-          : 'https://via.placeholder.com/500x750?text=No+Poster',
-        synopsis: movie.overview || 'No synopsis available',
-        streaming: []
-      }));
+      const movies = fallbackData.results
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6)
+        .map((movie: any) => ({
+          title: movie.title,
+          year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+          poster: movie.poster_path 
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : 'https://via.placeholder.com/500x750?text=No+Poster',
+          synopsis: movie.overview || 'No synopsis available',
+          streaming: []
+        }));
 
       return new Response(
         JSON.stringify({ movies }),
