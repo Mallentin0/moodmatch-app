@@ -9,7 +9,7 @@ interface HeaderProps {
 export function Header({ onSignInClick }: HeaderProps) {
   return (
     <>
-      <div className="flex justify-end mb-8">
+      <div className="flex justify-end mb-4 sm:mb-8 px-4 sm:px-6 lg:px-8">
         <Button
           variant="outline"
           onClick={onSignInClick}
@@ -23,10 +23,10 @@ export function Header({ onSignInClick }: HeaderProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-12"
+        className="text-center mb-8 sm:mb-12 px-4 sm:px-6 lg:px-8"
       >
-        <h1 className="text-4xl font-bold mb-4">MoodMatch</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">MoodMatch</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
           Tell us what you're in the mood for, and we'll use AI to find the perfect movie or show for you.
         </p>
       </motion.div>

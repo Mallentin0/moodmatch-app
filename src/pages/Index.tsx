@@ -137,15 +137,15 @@ const Index = () => {
     <div className="flex flex-col min-h-screen bg-background">
       <Header onSignInClick={handleSignIn} />
 
-      <main className="flex-grow flex flex-col p-6 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
+      <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
-            <TabsTrigger value="movie">Movies</TabsTrigger>
-            <TabsTrigger value="tvshow">TV Shows</TabsTrigger>
-            <TabsTrigger value="anime">Anime</TabsTrigger>
+            <TabsTrigger value="movie" className="text-sm sm:text-base">Movies</TabsTrigger>
+            <TabsTrigger value="tvshow" className="text-sm sm:text-base">TV Shows</TabsTrigger>
+            <TabsTrigger value="anime" className="text-sm sm:text-base">Anime</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="movie">
+          <TabsContent value="movie" className="mt-6">
             <SearchSection
               activeTab="movie"
               prompt={prompt}

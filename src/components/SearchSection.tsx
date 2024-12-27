@@ -60,26 +60,26 @@ export function SearchSection({
   return (
     <Card className="relative overflow-hidden border-none bg-gradient-to-br from-background/50 to-background/80 backdrop-blur-xl">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 pointer-events-none" />
-      <CardHeader className="relative space-y-1 text-center pb-4">
-        <CardTitle className="text-4xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
+      <CardHeader className="relative space-y-1 text-center pb-4 px-4 sm:px-6">
+        <CardTitle className="text-2xl sm:text-4xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text text-transparent">
           {getTitle()}
         </CardTitle>
-        <CardDescription className="text-lg text-muted-foreground max-w-[42rem] mx-auto">
+        <CardDescription className="text-base sm:text-lg text-muted-foreground max-w-[42rem] mx-auto">
           {getDescription()}
         </CardDescription>
       </CardHeader>
-      <CardContent className="relative">
-        <form onSubmit={onSubmit} className="flex space-x-2 max-w-2xl mx-auto">
+      <CardContent className="relative px-4 sm:px-6">
+        <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
           <Input
             placeholder={getPlaceholder()}
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
-            className="h-12 bg-background/50 border-primary/20 focus:border-primary focus:ring-primary backdrop-blur-sm text-base"
+            className="h-12 bg-background/50 border-primary/20 focus:border-primary focus:ring-primary backdrop-blur-sm text-sm sm:text-base flex-1"
           />
           <Button 
             type="submit" 
             size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 w-full sm:w-auto"
             disabled={isLoading}
           >
             {isLoading ? (
