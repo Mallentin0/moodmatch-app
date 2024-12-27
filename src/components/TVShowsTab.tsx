@@ -3,6 +3,7 @@ import { SearchSection } from "./SearchSection";
 import { MovieResults } from "./MovieResults";
 import { searchTVShows, TVShow } from "@/utils/tvmaze";
 import { useToast } from "./ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function TVShowsTab() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,8 +16,27 @@ export function TVShowsTab() {
     
     setIsLoading(true);
     try {
-      const shows = await searchTVShows(searchPrompt);
-      const formattedShows = shows.map((show: TVShow) => ({
+      // First, analyze the prompt with Claude
+      const { data: claudeData, error: claudeError } = await supabase.functions.invoke(
+        'analyze-tv-prompt',
+        { body: { prompt: searchPrompt } }
+      );
+      
+      if (claudeError) throw claudeError;
+
+      // Use the analyzed keywords to search for shows
+      const searchTerms = claudeData.keywords || [searchPrompt];
+      let allShows: TVShow[] = [];
+
+      // Search for each keyword
+      for (const term of searchTerms) {
+        const shows = await searchTVShows(term);
+        allShows = [...allShows, ...shows];
+      }
+
+      // Remove duplicates and format the results
+      const uniqueShows = Array.from(new Map(allShows.map(show => [show.id, show])).values());
+      const formattedShows = uniqueShows.map((show: TVShow) => ({
         title: show.name,
         year: show.premiered?.split('-')[0] || 'Unknown',
         poster: show.image?.original || show.image?.medium || '/placeholder.svg',
@@ -24,11 +44,11 @@ export function TVShowsTab() {
         genre: show.genres || [],
         type: 'show' as const,
         streaming: show.network ? [show.network.name] : [],
-        tone: [],
-        theme: []
+        tone: claudeData.tones || [],
+        theme: claudeData.themes || []
       }));
       
-      setResults(formattedShows);
+      setResults(formattedShows.slice(0, 6)); // Limit to 6 results like movies
     } catch (error) {
       console.error('Error searching shows:', error);
       toast({
