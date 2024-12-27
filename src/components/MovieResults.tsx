@@ -2,7 +2,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
 import { MovieDialog } from "@/components/MovieDialog";
+import { AuthDialog } from "@/components/AuthDialog";
 import { useState } from "react";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface Movie {
   title: string;
@@ -26,10 +28,20 @@ interface MovieResultsProps {
 export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: MovieResultsProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const session = useSession();
 
   const handleMovieClick = (movie: Movie) => {
     setSelectedMovie(movie);
     setDialogOpen(true);
+  };
+
+  const handleSaveMovie = (movie: Movie) => {
+    if (!session) {
+      setShowAuthDialog(true);
+      return;
+    }
+    onSaveMovie(movie);
   };
 
   // Filter out any results with "Hentai" in their genres
@@ -54,7 +66,7 @@ export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: Mo
               <EnhancedMovieCard 
                 key={`${movie.title}-${index}`}
                 {...movie} 
-                onSave={() => onSaveMovie(movie)}
+                onSave={() => handleSaveMovie(movie)}
                 onClick={() => handleMovieClick(movie)}
                 onFeedback={onFeedback}
               />
@@ -67,6 +79,11 @@ export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: Mo
         movie={selectedMovie}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+      />
+
+      <AuthDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
       />
     </>
   );
