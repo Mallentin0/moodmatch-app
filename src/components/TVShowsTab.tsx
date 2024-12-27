@@ -68,10 +68,39 @@ export function TVShowsTab() {
   };
 
   const handleFeedback = async (type: 'like' | 'dislike' | 'info', title: string) => {
-    toast({
-      title: "Feature coming soon",
-      description: "Show recommendations will be available soon!",
-    });
+    let searchPrompt = "";
+    
+    switch (type) {
+      case 'like':
+        searchPrompt = `shows similar to ${title} with similar themes and tone`;
+        toast({
+          title: "Finding similar shows",
+          description: `Looking for more shows like ${title}`,
+        });
+        break;
+      case 'dislike':
+        searchPrompt = `shows different from ${title}, with different themes and genres`;
+        toast({
+          title: "Updating recommendations",
+          description: `Finding different shows from ${title}`,
+        });
+        break;
+      case 'info':
+        // Find the show in results to display more info
+        const show = results.find(s => s.title === title);
+        if (show) {
+          toast({
+            title: show.title,
+            description: `${show.synopsis}\n\nGenres: ${show.genre.join(', ')}\nNetwork: ${show.streaming.join(', ')}\nThemes: ${show.theme.join(', ')}\nTone: ${show.tone.join(', ')}`,
+            duration: 10000,
+          });
+        }
+        return;
+    }
+
+    if (searchPrompt) {
+      await handleSearch(searchPrompt);
+    }
   };
 
   const handleSave = async (show: any) => {
