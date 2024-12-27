@@ -42,6 +42,10 @@ const Index = () => {
   const [lastPrompt, setLastPrompt] = useState("");
   const { toast } = useToast();
 
+  const handleSignIn = () => {
+    setShowAuthDialog(true);
+  };
+
   const handleSearch = async (searchPrompt: string, isRefinement = false) => {
     setIsLoading(true);
     const finalPrompt = isRefinement ? `${lastPrompt} ${searchPrompt}` : searchPrompt;
@@ -131,7 +135,7 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header onSignInClick={() => {}} />
+      <Header onSignInClick={handleSignIn} />
 
       <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full pb-24">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">

@@ -1,35 +1,22 @@
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { LogIn } from "lucide-react";
 
 interface HeaderProps {
   onSignInClick: () => void;
 }
 
 export function Header({ onSignInClick }: HeaderProps) {
-  const handleKofiClick = () => {
-    // @ts-ignore - kofiWidgetOverlay is added by the script
-    if (window.kofiWidgetOverlay) {
-      // @ts-ignore
-      window.kofiWidgetOverlay.draw('moodwatch', {
-        'type': 'floating-chat',
-        'floating-chat.donateButton.text': 'Support me',
-        'floating-chat.donateButton.background-color': '#ff5f5f',
-        'floating-chat.donateButton.text-color': '#fff'
-      });
-    }
-  };
-
   return (
     <>
       <div className="flex justify-end mb-4 sm:mb-8 px-4 sm:px-6 lg:px-8">
         <Button
           variant="outline"
-          onClick={handleKofiClick}
+          onClick={onSignInClick}
           className="flex items-center gap-2"
         >
           <LogIn className="w-4 h-4" />
-          Sign in
+          Sign In
         </Button>
       </div>
 
