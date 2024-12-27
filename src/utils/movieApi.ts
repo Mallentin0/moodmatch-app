@@ -9,7 +9,7 @@ interface RequestOptions extends RequestInit {
 
 const omdbFetch = async (params: Record<string, string>) => {
   const queryString = new URLSearchParams({
-    apikey: process.env.OMDB_API_KEY || "",
+    apikey: import.meta.env.VITE_OMDB_API_KEY || "",
     ...params
   }).toString();
   
@@ -29,7 +29,7 @@ const tmdbFetch = async (endpoint: string, options: RequestOptions = {}) => {
   const response = await fetch(url, {
     ...options,
     headers: {
-      'Authorization': `Bearer ${process.env.TMDB_API_KEY}`,
+      'Authorization': `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
       'Content-Type': 'application/json',
       ...options.headers,
     },
