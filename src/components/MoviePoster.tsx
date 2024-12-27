@@ -1,6 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { BookmarkPlus } from "lucide-react";
 
+// Add type definition for Ko-fi widget
+declare global {
+  interface Window {
+    kofiWidgetOverlay?: {
+      draw: (username: string, options: Record<string, string>) => void;
+    };
+  }
+}
+
 interface MoviePosterProps {
   poster: string;
   title: string;
@@ -11,7 +20,6 @@ export function MoviePoster({ poster, title, onSave }: MoviePosterProps) {
   const handleSaveClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event from firing
     if (window.kofiWidgetOverlay) {
-      // @ts-ignore
       window.kofiWidgetOverlay.draw('moodwatch', {
         'type': 'floating-chat',
         'floating-chat.donateButton.text': 'Support me',
