@@ -10,6 +10,7 @@ import { TVShowsTab } from "@/components/TVShowsTab";
 import { AnimeTab } from "@/components/AnimeTab";
 import { Footer } from "@/components/Footer";
 import { Heart } from "lucide-react";
+import { KofiButton } from "@/components/KofiButton";
 
 interface Movie {
   title: string;
@@ -203,6 +204,7 @@ const Index = () => {
         </Tabs>
       </main>
 
+      <KofiButton />
       <Footer />
 
       <AuthDialog 
