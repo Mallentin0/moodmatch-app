@@ -8,34 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
-// Temporary mock data for demonstration
-const mockResults = [
-  {
-    title: "You've Got Mail",
-    year: "1998",
-    poster: "https://image.tmdb.org/t/p/w500/f9mbM0YMLpYemcWx6o2WeiYQLDP.jpg",
-    synopsis: "Book superstore magnate Joe Fox and independent book shop owner Kathleen Kelly fall in love in the anonymity of the Internet – both blissfully unaware that he's trying to put her out of business.",
-    streaming: ["Netflix", "HBO Max"]
-  },
-  {
-    title: "Sleepless in Seattle",
-    year: "1993",
-    poster: "https://image.tmdb.org/t/p/w500/iLw0VaWvqXqZxuJqPsZvkFjsaHF.jpg",
-    synopsis: "A young boy who tries to set his dad up on a date after the death of his mother. He calls into a radio station to talk about his dad's loneliness which soon leads the dad into meeting a journalist.",
-    streaming: ["Prime Video"]
-  },
-  {
-    title: "When Harry Met Sally",
-    year: "1989",
-    poster: "https://image.tmdb.org/t/p/w500/3wkbKeowUp1Zpkw1KkoPmhrMQqw.jpg",
-    synopsis: "During their travel from Chicago to New York, Harry and Sally debate whether or not sex ruins a friendship between a man and a woman. Eleven years later, and they're still no closer to finding the answer.",
-    streaming: ["Hulu"]
-  }
-];
+interface Movie {
+  title: string;
+  year: string;
+  poster: string;
+  synopsis: string;
+  streaming?: string[];
+}
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<typeof mockResults>([]);
+  const [results, setResults] = useState<Movie[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,10 +45,22 @@ const Index = () => {
 
   const handleSearch = async (prompt: string) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setResults(mockResults);
-    setIsLoading(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('search-movies', {
+        body: { prompt }
+      });
+      
+      if (error) {
+        console.error('Error searching movies:', error);
+        return;
+      }
+
+      setResults(data.movies);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
