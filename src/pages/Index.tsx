@@ -118,14 +118,14 @@ const Index = () => {
 
       <main className="flex-grow flex flex-col p-6 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Card className="bg-card shadow-lg border-primary/20 animate-float">
-          <CardHeader>
+          <CardHeader className="text-center">
             <CardTitle className="text-2xl text-primary">What's your mood today?</CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-muted-foreground max-w-lg mx-auto">
               Describe your mood or the type of movie/show you're looking for, and we'll find the perfect match.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex space-x-2">
+            <form onSubmit={handleSearch} className="flex space-x-2 max-w-2xl mx-auto">
               <Input
                 placeholder="E.g., 'A mind-bending sci-fi thriller'"
                 value={prompt}
