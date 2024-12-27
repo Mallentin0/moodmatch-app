@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-interface MovieCardProps {
+export interface MovieCardProps {
   title: string;
   year: string;
   poster: string;

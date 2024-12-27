@@ -30,10 +30,10 @@ const Index = () => {
         topResults.map(async (movie: any) => {
           const details = await getMovieDetails(movie.id);
           return MovieSchema.parse({
-            title: movie.title,
-            year: new Date(movie.release_date).getFullYear().toString(),
-            poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-            synopsis: movie.overview,
+            title: movie.title || "Untitled",
+            year: movie.release_date ? new Date(movie.release_date).getFullYear().toString() : "Unknown",
+            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "/placeholder.svg",
+            synopsis: movie.overview || "No synopsis available",
             streaming: details.watch?.providers?.results?.US?.flatrate?.map((p: any) => p.provider_name) || [],
           });
         })
@@ -70,7 +70,14 @@ const Index = () => {
           results.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
               {results.map((movie) => (
-                <MovieCard key={movie.title} {...movie} />
+                <MovieCard
+                  key={movie.title}
+                  title={movie.title}
+                  year={movie.year}
+                  poster={movie.poster}
+                  synopsis={movie.synopsis}
+                  streaming={movie.streaming}
+                />
               ))}
             </div>
           )
