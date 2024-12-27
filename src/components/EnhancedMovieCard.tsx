@@ -1,7 +1,7 @@
 import { MoviePoster } from "./MoviePoster";
 import { MovieMetadataBadges } from "./MovieMetadataBadges";
 import { Card, CardContent } from "@/components/ui/card";
-import { Film, ThumbsUp, ThumbsDown, Info, Tv } from "lucide-react";
+import { Film, ThumbsUp, ThumbsDown, Info, Tv, Calendar, Tag, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -34,8 +34,6 @@ export function EnhancedMovieCard({
   onClick,
   onFeedback
 }: MovieProps) {
-  const decade = year ? `${year.slice(0, 3)}0s` : 'Unknown';
-
   const handleFeedback = (feedbackType: 'like' | 'dislike' | 'info', e: React.MouseEvent) => {
     e.stopPropagation();
     if (onFeedback) {
@@ -51,9 +49,40 @@ export function EnhancedMovieCard({
       <div className="relative">
         <MoviePoster poster={poster} title={title} onSave={onSave} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+        
+        {/* Metadata Bubbles */}
+        <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-2">
+          {year && (
+            <Badge variant="secondary" className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {year}
+            </Badge>
+          )}
+          {genre.slice(0, 2).map((g) => (
+            <Badge 
+              key={g} 
+              variant="secondary"
+              className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
+            >
+              <Tag className="h-3 w-3" />
+              {g}
+            </Badge>
+          ))}
+          {streaming.slice(0, 2).map((platform) => (
+            <Badge 
+              key={platform}
+              variant="secondary"
+              className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
+            >
+              <Globe className="h-3 w-3" />
+              {platform}
+            </Badge>
+          ))}
+        </div>
+
         <div className="absolute bottom-0 left-0 p-4">
           <h3 className="text-xl font-bold text-white">
-            {title} {year && `(${year})`}
+            {title}
           </h3>
         </div>
       </div>
@@ -61,37 +90,37 @@ export function EnhancedMovieCard({
       <CardContent className="p-4 space-y-4">
         <p className="text-sm text-muted-foreground line-clamp-3">{synopsis}</p>
         
-        <MovieMetadataBadges
-          genre={genre}
-          tone={tone}
-          streaming={streaming}
-          theme={theme}
-          decade={decade}
-        />
+        {/* Theme Badges */}
+        {theme.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {theme.map((t) => (
+              <Badge 
+                key={t}
+                variant="outline"
+                className="text-xs"
+              >
+                {t}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         <div className="flex justify-between items-center pt-4 border-t border-primary/20">
-          <div className="flex items-center space-x-2">
-            <Badge 
-              variant="secondary" 
-              className="flex items-center space-x-1 bg-primary/10 text-primary"
-            >
-              {type === 'movie' ? (
-                <Film className="h-3 w-3 mr-1" />
-              ) : type === 'show' ? (
-                <Tv className="h-3 w-3 mr-1" />
-              ) : (
-                <Film className="h-3 w-3 mr-1" />
-              )}
-              <span className="capitalize">{type}</span>
-            </Badge>
-            {streaming.length > 0 && (
-              <span className="text-sm text-muted-foreground">
-                on {streaming.join(", ")}
-              </span>
+          <Badge 
+            variant="secondary" 
+            className="flex items-center space-x-1 bg-primary/10 text-primary"
+          >
+            {type === 'movie' ? (
+              <Film className="h-3 w-3 mr-1" />
+            ) : type === 'show' ? (
+              <Tv className="h-3 w-3 mr-1" />
+            ) : (
+              <Film className="h-3 w-3 mr-1" />
             )}
-          </div>
+            <span className="capitalize">{type}</span>
+          </Badge>
           
-          <div className="flex space-x-2 ml-auto">
+          <div className="flex space-x-2">
             <Button 
               size="sm" 
               variant="ghost" 
