@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const OMDB_BASE_URL = "https://www.omdbapi.com/";
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
@@ -7,9 +8,16 @@ interface RequestOptions extends RequestInit {
   headers?: HeadersInit;
 }
 
+const getApiKeys = async () => {
+  const { data: secrets, error } = await supabase.functions.invoke('get-api-keys');
+  if (error) throw error;
+  return secrets as { omdbKey: string; tmdbKey: string };
+};
+
 const omdbFetch = async (params: Record<string, string>) => {
+  const { omdbKey } = await getApiKeys();
   const queryString = new URLSearchParams({
-    apikey: import.meta.env.VITE_OMDB_API_KEY || "",
+    apikey: omdbKey,
     ...params
   }).toString();
   
@@ -25,11 +33,12 @@ const omdbFetch = async (params: Record<string, string>) => {
 };
 
 const tmdbFetch = async (endpoint: string, options: RequestOptions = {}) => {
+  const { tmdbKey } = await getApiKeys();
   const url = `${TMDB_BASE_URL}${endpoint}`;
   const response = await fetch(url, {
     ...options,
     headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_TMDB_API_KEY}`,
+      'Authorization': `Bearer ${tmdbKey}`,
       'Content-Type': 'application/json',
       ...options.headers,
     },
