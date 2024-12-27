@@ -1,37 +1,15 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
-import { MovieResults } from "@/components/MovieResults";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SearchSection } from "@/components/SearchSection";
-import { RefinementOptions } from "@/components/RefinementOptions";
 import { TVShowsTab } from "@/components/TVShowsTab";
 import { AnimeTab } from "@/components/AnimeTab";
 import { Footer } from "@/components/Footer";
-
-interface Movie {
-  title: string;
-  year: string;
-  poster: string;
-  synopsis: string;
-  streaming?: string[];
-  theme?: string[];
-  genre?: string[];
-  tone?: string[];
-  type?: 'movie' | 'show';
-}
-
-const REFINEMENT_OPTIONS = {
-  movie: [
-    { label: "More like this", prompt: "similar to the current recommendations" },
-    { label: "Funnier", prompt: "but funnier" },
-    { label: "More action", prompt: "with more action" },
-    { label: "More dramatic", prompt: "but more dramatic" },
-    { label: "More romantic", prompt: "with more romance" },
-  ]
-};
+import { TabContent } from "@/components/TabContent";
+import { DonationSection } from "@/components/DonationSection";
+import { Movie } from "@/types/movie";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'movie' | 'anime' | 'tvshow'>('movie');
@@ -138,6 +116,8 @@ const Index = () => {
       <Header onSignInClick={handleSignIn} />
 
       <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full pb-24">
+        <DonationSection />
+        
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <div className="flex justify-center w-full mb-6">
             <TabsList className="grid w-full max-w-md grid-cols-3 bg-secondary">
@@ -163,22 +143,14 @@ const Index = () => {
           </div>
 
           <TabsContent value="movie" className="mt-6">
-            <SearchSection
-              activeTab="movie"
+            <TabContent
+              activeTab={activeTab}
               prompt={prompt}
               isLoading={isLoading}
+              results={results}
               onPromptChange={setPrompt}
               onSubmit={handleSubmit}
-            />
-            {results.length > 0 && (
-              <RefinementOptions
-                options={REFINEMENT_OPTIONS.movie}
-                onRefinement={handleRefinement}
-              />
-            )}
-            <MovieResults 
-              isLoading={isLoading}
-              results={results}
+              onRefinement={handleRefinement}
               onSaveMovie={handleSave}
               onFeedback={handleFeedback}
             />
