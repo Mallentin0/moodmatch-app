@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { SearchPrompt } from "@/components/SearchPrompt";
 import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
@@ -23,7 +22,6 @@ const Index = () => {
   const [results, setResults] = useState<Movie[]>([]);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSearch = async (prompt: string) => {
     setIsLoading(true);
@@ -34,12 +32,22 @@ const Index = () => {
       
       if (error) {
         console.error('Error searching movies:', error);
+        toast({
+          title: "Error",
+          description: "Failed to get movie recommendations. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
       setResults(data.movies);
     } catch (error) {
       console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +63,6 @@ const Index = () => {
       });
       return;
     }
-    // TODO: Implement save functionality
     toast({
       title: "Coming soon",
       description: "Saving recommendations will be available soon!",
@@ -83,7 +90,7 @@ const Index = () => {
         >
           <h1 className="text-4xl font-bold mb-4">MoodMatch</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Tell us what you're in the mood for, and we'll find the perfect movie or show for you.
+            Tell us what you're in the mood for, and we'll use AI to find the perfect movie or show for you.
           </p>
         </motion.div>
 

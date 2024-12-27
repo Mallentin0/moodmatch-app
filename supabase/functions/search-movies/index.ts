@@ -1,5 +1,8 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+
+const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY');
+const TMDB_API_KEY = Deno.env.get('TMDB_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,16 +11,42 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { prompt } = await req.json();
-    const TMDB_API_KEY = Deno.env.get('TMDB_API_KEY');
-    
-    // First, search for movies based on the prompt
+
+    // First, use Claude to analyze the prompt
+    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': CLAUDE_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-sonnet-20240229',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `Analyze this movie request and extract key search terms: "${prompt}". 
+          Return only a JSON object with these fields:
+          - searchQuery (string): The main search terms
+          - genre (string, optional): The main genre if mentioned
+          - year (number, optional): Specific year or decade mentioned
+          - mood (string, optional): The mood/tone mentioned
+          Format as valid JSON only, no other text.`
+        }]
+      })
+    });
+
+    const claudeData = await claudeResponse.json();
+    const searchParams = JSON.parse(claudeData.content[0].text);
+
+    // Use the analyzed parameters to search TMDB
     const searchResponse = await fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(prompt)}&language=en-US&page=1&include_adult=false`,
+      `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&query=${encodeURIComponent(searchParams.searchQuery)}${searchParams.year ? `&year=${searchParams.year}` : ''}${searchParams.genre ? `&with_genres=${searchParams.genre}` : ''}`,
       {
         method: 'GET',
         headers: {
