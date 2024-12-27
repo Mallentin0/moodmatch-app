@@ -48,7 +48,7 @@ export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: Mo
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12 max-w-7xl mx-auto justify-items-center px-4"
           >
             {filteredResults.map((movie, index) => (
               <EnhancedMovieCard 
