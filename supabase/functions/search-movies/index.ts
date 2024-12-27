@@ -1,7 +1,6 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { analyzePrompt } from "./claude.ts";
-import { fetchMovieDetails, searchMovies, buildSearchUrl, type MovieResult } from "./tmdb.ts";
+import { fetchMovieDetails, searchMovies, buildSearchUrl, getWatchProviders, getGenres } from "./tmdb.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,128 +16,110 @@ serve(async (req) => {
     const { prompt } = await req.json();
     console.log('Received prompt:', prompt);
 
+    if (!prompt || prompt.trim().length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: 'Please provide a search prompt',
+          message: 'Try something like "A heartwarming family movie from the 90s" or "Action thriller with plot twists on Netflix"'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
     // Analyze prompt using Claude
     console.log('Calling Claude API...');
     const searchParams = await analyzePrompt(prompt);
     console.log('Parsed search parameters:', searchParams);
 
-    // Extract streaming platforms from the prompt
-    const streamingPlatforms = [
-      'Netflix', 'Hulu', 'Amazon Prime Video', 'Disney+', 
-      'HBO Max', 'Apple TV+', 'Paramount+', 'Peacock', 'Crunchyroll'
-    ].filter(platform => 
-      prompt.toLowerCase().includes(platform.toLowerCase())
-    );
+    // Get genres for mapping
+    const genreMap = await getGenres();
 
-    // Get multiple random pages to increase variety
-    const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
-    const allResults = [];
+    // Search for movies
+    const searchUrl = buildSearchUrl(searchParams, 1);
+    console.log('TMDB Search URL:', searchUrl);
     
-    // Fetch movies from multiple pages
-    for (const page of pages) {
-      const searchUrl = buildSearchUrl(searchParams, page);
-      console.log(`TMDB URL for page ${page}:`, searchUrl);
-      
-      const searchData = await searchMovies(searchUrl);
-      
-      if (searchData.results && Array.isArray(searchData.results)) {
-        allResults.push(...searchData.results);
-      }
-    }
-
-    // If no results found, try a broader search
-    if (allResults.length === 0) {
-      console.log('No results found, trying broader search...');
-      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 5) + 1);
-      const fallbackData = await searchMovies(fallbackUrl);
-      allResults.push(...fallbackData.results);
-    }
-
-    // Shuffle and take 6 random results
-    const shuffledResults = allResults
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 12); // Get more results initially to filter by streaming
-
-    // Transform and filter the results based on streaming platforms
-    const movies: MovieResult[] = await Promise.all(
-      shuffledResults.map(async (movie: any) => {
-        console.log('Processing movie:', movie.title);
-        const details = await fetchMovieDetails(movie.id);
-        
-        // Extract streaming providers (US region)
-        const providers = details['watch/providers']?.results?.US?.flatrate || [];
-        const movieStreamingPlatforms = providers.map((p: any) => p.provider_name);
-
-        // If streaming platforms were specified in the prompt, check if the movie is available on any of them
-        if (streamingPlatforms.length > 0) {
-          const hasRequestedPlatform = movieStreamingPlatforms.some(platform =>
-            streamingPlatforms.some(requested => 
-              platform.toLowerCase().includes(requested.toLowerCase())
-            )
-          );
-          
-          if (!hasRequestedPlatform) {
-            return null; // Skip this movie if it's not available on requested platforms
-          }
+    const searchData = await searchMovies(searchUrl);
+    
+    if (!searchData.results || searchData.results.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: 'No movies found',
+          message: 'Try being more specific with your search. Include details like:\n' +
+                  '- Genre (comedy, thriller, drama)\n' +
+                  '- Time period (90s, 2000s, recent)\n' +
+                  '- Mood (funny, dark, heartwarming)\n' +
+                  '- Streaming platform (Netflix, Hulu)\n\n' +
+                  'Example: "A funny romantic comedy from the 90s on Netflix" or\n' +
+                  '"Dark sci-fi thriller with plot twists on Hulu"'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404 
         }
-        
-        return {
-          title: movie.title,
-          year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
-          poster: movie.poster_path 
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : 'https://via.placeholder.com/500x750?text=No+Poster',
-          synopsis: movie.overview || 'No synopsis available',
-          streaming: movieStreamingPlatforms,
-          genre: details.genres?.map((g: any) => g.name) || [],
-          tone: searchParams.tone || [],
-          theme: searchParams.theme || []
-        };
+      );
+    }
+
+    // Process results with enhanced error handling
+    const movies = await Promise.all(
+      searchData.results.slice(0, 6).map(async (movie: any) => {
+        try {
+          const details = await fetchMovieDetails(movie.id);
+          const streamingPlatforms = await getWatchProviders(movie.id);
+          
+          return {
+            title: movie.title,
+            year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+            poster: movie.poster_path 
+              ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+              : 'https://via.placeholder.com/500x750?text=No+Poster',
+            synopsis: movie.overview || 'No synopsis available',
+            streaming: streamingPlatforms,
+            genre: details.genres?.map((g: any) => g.name) || [],
+            tone: searchParams.tone || [],
+            theme: searchParams.theme || []
+          };
+        } catch (error) {
+          console.error(`Error processing movie ${movie.id}:`, error);
+          return null;
+        }
       })
     );
 
-    // Filter out null results and take up to 6 movies
-    const filteredMovies = movies.filter(movie => movie !== null).slice(0, 6);
+    // Filter out any failed movie processing
+    const validMovies = movies.filter(movie => movie !== null);
 
-    console.log('Final movies response:', filteredMovies);
-
-    return new Response(
-      JSON.stringify({ movies: filteredMovies }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error('Error in search-movies function:', error);
-    
-    // Return random popular movies in case of error
-    try {
-      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 10) + 1);
-      const fallbackData = await searchMovies(fallbackUrl);
-      
-      const movies = fallbackData.results
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 6)
-        .map((movie: any) => ({
-          title: movie.title,
-          year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
-          poster: movie.poster_path 
-            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-            : 'https://via.placeholder.com/500x750?text=No+Poster',
-          synopsis: movie.overview || 'No synopsis available',
-          streaming: []
-        }));
-
+    if (validMovies.length === 0) {
       return new Response(
-        JSON.stringify({ movies }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } catch (fallbackError) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to get movie recommendations' }),
-        {
-          status: 500,
+        JSON.stringify({
+          error: 'Error processing movies',
+          message: 'Please try a different search'
+        }),
+        { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
         }
       );
     }
+
+    return new Response(
+      JSON.stringify({ movies: validMovies }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error in search-movies function:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: 'An unexpected error occurred. Please try again.'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
+      }
+    );
   }
 });

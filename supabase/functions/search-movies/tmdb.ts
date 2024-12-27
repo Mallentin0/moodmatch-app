@@ -1,4 +1,10 @@
 const TMDB_API_KEY = Deno.env.get('TMDB_API_KEY');
+const BASE_URL = 'https://api.themoviedb.org/3';
+
+const headers = {
+  'Authorization': `Bearer ${TMDB_API_KEY}`,
+  'Content-Type': 'application/json',
+};
 
 export interface MovieResult {
   title: string;
@@ -13,19 +19,24 @@ export interface MovieResult {
 
 export async function fetchMovieDetails(movieId: number): Promise<any> {
   const response = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+    `${BASE_URL}/movie/${movieId}?append_to_response=watch/providers`,
+    { headers }
   );
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
   return response.json();
 }
 
 export async function searchMovies(searchUrl: string): Promise<any> {
-  const response = await fetch(searchUrl);
+  const response = await fetch(searchUrl, { headers });
+  
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status}`);
+  }
+
   return response.json();
 }
 
@@ -33,7 +44,7 @@ export function buildSearchUrl(params: any, page: number): string {
   const sortOptions = ['popularity.desc', 'vote_average.desc', 'revenue.desc'];
   const randomSort = sortOptions[Math.floor(Math.random() * sortOptions.length)];
   
-  let searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=${randomSort}&include_adult=false&page=${page}`;
+  let searchUrl = `${BASE_URL}/discover/movie?language=en-US&sort_by=${randomSort}&include_adult=false&page=${page}`;
   
   if (params.genre) {
     searchUrl += `&with_genres=${encodeURIComponent(params.genre)}`;
@@ -53,5 +64,43 @@ export function buildSearchUrl(params: any, page: number): string {
     searchUrl += `&with_keywords=${encodeURIComponent(params.keywords.join(','))}`;
   }
 
+  // Add region parameter for more relevant results
+  searchUrl += '&region=US';
+
   return searchUrl;
+}
+
+// Helper function to get watch providers (streaming platforms)
+export async function getWatchProviders(movieId: number): Promise<string[]> {
+  const response = await fetch(
+    `${BASE_URL}/movie/${movieId}/watch/providers`,
+    { headers }
+  );
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const data = await response.json();
+  const usProviders = data.results?.US?.flatrate || [];
+  return usProviders.map((provider: any) => provider.provider_name);
+}
+
+// Helper function to get movie genres
+export async function getGenres(): Promise<Map<number, string>> {
+  const response = await fetch(
+    `${BASE_URL}/genre/movie/list?language=en`,
+    { headers }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch genres');
+  }
+
+  const data = await response.json();
+  const genreMap = new Map();
+  data.genres.forEach((genre: any) => {
+    genreMap.set(genre.id, genre.name);
+  });
+  return genreMap;
 }
