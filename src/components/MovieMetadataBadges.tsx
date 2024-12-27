@@ -16,86 +16,57 @@ export function MovieMetadataBadges({
   decade 
 }: MovieMetadataBadgesProps) {
   return (
-    <div className="space-y-4">
-      {/* Genre Section */}
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-1 text-xs text-gray-500 mb-1">
+        {genre.length > 0 && <span>Genre</span>}
+        {tone.length > 0 && <span>Tone</span>}
+        {streaming.length > 0 && <span>Platform</span>}
+        {theme.length > 0 && <span>Theme</span>}
+      </div>
+
       {genre.length > 0 && (
-        <div className="space-y-2">
-          <span className="text-xs text-muted-foreground">Genre</span>
-          <div className="flex flex-wrap gap-2">
-            {genre.map((g) => (
-              <Badge 
-                key={g} 
-                variant="secondary" 
-                className="bg-secondary/80 text-secondary-foreground backdrop-blur-sm"
-              >
-                {g}
-              </Badge>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {genre.map((g) => (
+            <Badge key={g} variant="outline" className="text-xs bg-blue-50">
+              {g}
+            </Badge>
+          ))}
         </div>
       )}
       
-      {/* Platform Section */}
-      {streaming.length > 0 && (
-        <div className="space-y-2">
-          <span className="text-xs text-muted-foreground">Platform</span>
-          <div className="flex flex-wrap gap-2">
-            {streaming.map((platform) => (
-              <Badge 
-                key={platform} 
-                variant="secondary"
-                className="bg-secondary/80 text-secondary-foreground backdrop-blur-sm"
-              >
-                {platform}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Tone Section */}
       {tone.length > 0 && (
-        <div className="space-y-2">
-          <span className="text-xs text-muted-foreground">Tone</span>
-          <div className="flex flex-wrap gap-2">
-            {tone.map((t) => (
-              <Badge 
-                key={t} 
-                variant="secondary"
-                className="bg-secondary/80 text-secondary-foreground backdrop-blur-sm"
-              >
-                {t}
-              </Badge>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {tone.map((t) => (
+            <Badge key={t} variant="outline" className="text-xs bg-purple-50">
+              {t}
+            </Badge>
+          ))}
         </div>
       )}
       
-      {/* Theme Section */}
+      {streaming.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {streaming.map((platform) => (
+            <Badge key={platform} variant="secondary" className="text-xs">
+              {platform}
+            </Badge>
+          ))}
+        </div>
+      )}
+      
       {theme.length > 0 && (
-        <div className="space-y-2">
-          <span className="text-xs text-muted-foreground">Theme</span>
-          <div className="flex flex-wrap gap-2">
-            {theme.map((t) => (
-              <Badge 
-                key={t} 
-                variant="secondary"
-                className="bg-secondary/80 text-secondary-foreground backdrop-blur-sm"
-              >
-                {t}
-              </Badge>
-            ))}
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {theme.map((t) => (
+            <Badge key={t} variant="outline" className="text-xs bg-green-50">
+              {t}
+            </Badge>
+          ))}
         </div>
       )}
 
-      {/* Decade Badge */}
       {decade && decade !== 'Unknown' && (
-        <div className="flex flex-wrap gap-2">
-          <Badge 
-            variant="secondary"
-            className="bg-secondary/80 text-secondary-foreground backdrop-blur-sm"
-          >
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Badge variant="outline" className="text-xs bg-yellow-50">
             {decade}
           </Badge>
         </div>
