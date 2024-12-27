@@ -9,12 +9,12 @@ export interface MovieResult {
   genre?: string[];
   tone?: string[];
   theme?: string[];
-  type?: 'movie' | 'show';
+  type?: 'movie';
 }
 
-export async function fetchMovieDetails(movieId: number, type: 'movie' | 'tv'): Promise<any> {
+export async function fetchMovieDetails(movieId: number, type: 'movie'): Promise<any> {
   const response = await fetch(
-    `https://api.themoviedb.org/3/${type}/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`,
+    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`,
     {
       method: 'GET',
       headers: {
@@ -30,11 +30,11 @@ export async function searchMovies(searchUrl: string): Promise<any> {
   return response.json();
 }
 
-export function buildSearchUrl(params: any, page: number, type: 'movie' | 'tv'): string {
+export function buildSearchUrl(params: any, page: number, type: 'movie'): string {
   const sortOptions = ['popularity.desc', 'vote_average.desc', 'revenue.desc'];
   const randomSort = sortOptions[Math.floor(Math.random() * sortOptions.length)];
   
-  let searchUrl = `https://api.themoviedb.org/3/discover/${type}?api_key=${TMDB_API_KEY}&language=en-US&sort_by=${randomSort}&include_adult=false&page=${page}`;
+  let searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=${randomSort}&include_adult=false&page=${page}`;
   
   if (params.genre) {
     searchUrl += `&with_genres=${encodeURIComponent(params.genre)}`;
@@ -43,13 +43,10 @@ export function buildSearchUrl(params: any, page: number, type: 'movie' | 'tv'):
   if (params.year) {
     const year = params.year.toString();
     if (year.length === 4) {
-      searchUrl += type === 'movie' ? 
-        `&primary_release_year=${year}` : 
-        `&first_air_date_year=${year}`;
+      searchUrl += `&primary_release_year=${year}`;
     } else if (year.length === 2) {
       const startYear = `19${year}`;
-      const dateField = type === 'movie' ? 'primary_release_date' : 'first_air_date';
-      searchUrl += `&${dateField}.gte=${startYear}-01-01&${dateField}.lte=${parseInt(startYear) + 9}-12-31`;
+      searchUrl += `&primary_release_date.gte=${startYear}-01-01&primary_release_date.lte=${parseInt(startYear) + 9}-12-31`;
     }
   }
   

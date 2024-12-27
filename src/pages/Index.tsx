@@ -17,7 +17,7 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
-  type?: 'movie' | 'show';
+  type?: 'movie';
 }
 
 const REFINEMENT_OPTIONS = {
@@ -58,7 +58,7 @@ const Index = () => {
     try {
       const { data, error } = await supabase.functions.invoke(
         activeTab === 'movie' ? 'search-movies' : 'search-anime', 
-        { body: { prompt: finalPrompt, includeShows: activeTab === 'movie' } }
+        { body: { prompt: finalPrompt } }
       );
       
       if (error) {
@@ -164,7 +164,7 @@ const Index = () => {
       <main className="flex-grow flex flex-col p-6 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="movie">Movies & Shows</TabsTrigger>
+            <TabsTrigger value="movie">Movies</TabsTrigger>
             <TabsTrigger value="anime">Anime</TabsTrigger>
           </TabsList>
 
