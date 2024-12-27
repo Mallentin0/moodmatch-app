@@ -1,4 +1,4 @@
-import { Github, Twitter, Tiktok } from "lucide-react";
+import { Github, Twitter } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Footer() {
@@ -11,12 +11,12 @@ export function Footer() {
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
             Built by{" "}
             <a
-              href="https://x.com/_mallentino"
+              href="https://twitter.com/yourusername"
               target="_blank"
               rel="noreferrer"
               className="font-medium underline underline-offset-4"
             >
-              Mallentin
+              Your Name
             </a>
             . © {currentYear} All rights reserved.
           </p>
@@ -24,7 +24,7 @@ export function Footer() {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <a
-              href="https://github.com/Mallentin0"
+              href="https://github.com/yourusername"
               target="_blank"
               rel="noreferrer"
               className="opacity-75 transition-opacity hover:opacity-100"
@@ -35,24 +35,13 @@ export function Footer() {
           </Button>
           <Button variant="ghost" size="icon" asChild>
             <a
-              href="https://x.com/_mallentino"
+              href="https://twitter.com/yourusername"
               target="_blank"
               rel="noreferrer"
               className="opacity-75 transition-opacity hover:opacity-100"
             >
               <Twitter className="h-4 w-4" />
               <span className="sr-only">Twitter</span>
-            </a>
-          </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <a
-              href="https://www.tiktok.com/@mallentino.ai"
-              target="_blank"
-              rel="noreferrer"
-              className="opacity-75 transition-opacity hover:opacity-100"
-            >
-              <Tiktok className="h-4 w-4" />
-              <span className="sr-only">TikTok</span>
             </a>
           </Button>
         </div>
