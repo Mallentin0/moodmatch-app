@@ -17,7 +17,7 @@ const Index = () => {
       setIsLoading(true);
       setResults([]);
 
-      // Analyze user prompt with Claude
+      // Analyze user prompt with AI
       const preferences = await analyzeUserPrompt(prompt);
       console.log("AI Analysis:", preferences);
 
@@ -34,7 +34,7 @@ const Index = () => {
             year: details.Year || "Unknown",
             poster: details.Poster !== "N/A" ? details.Poster : "/placeholder.svg",
             synopsis: details.Plot || "No synopsis available",
-            streaming: [], // OMDB doesn't provide streaming info
+            streaming: [], // We'll implement streaming info in a future update
             ratings: details.Ratings || [],
             director: details.Director,
             actors: details.Actors,
@@ -60,9 +60,9 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-4">
       <div className="max-w-7xl mx-auto py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">MoodMatch</h1>
+          <h1 className="text-4xl font-bold mb-4">MoodWatch.ai</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Tell us what you're in the mood for, and we'll find the perfect movie or show for you.
+            Tell us what you're in the mood for, and we'll find the perfect movie or show for you using AI.
           </p>
         </div>
 
