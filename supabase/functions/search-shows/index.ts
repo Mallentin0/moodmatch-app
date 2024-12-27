@@ -11,7 +11,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -20,11 +19,9 @@ serve(async (req) => {
     const { prompt } = await req.json();
     console.log('Received TV show search prompt:', prompt);
 
-    // Use Claude to analyze the prompt
     const searchParams = await analyzePrompt(prompt);
     console.log('Claude analysis:', searchParams);
 
-    // Build search query based on Claude's analysis
     const searchQuery = [
       searchParams.genre,
       ...(searchParams.keywords || []),
@@ -34,7 +31,7 @@ serve(async (req) => {
 
     console.log('Search query:', searchQuery);
 
-    // Search TV shows using TMDB API - specifically for TV shows
+    // Search TV shows using TMDB API
     const tmdbResponse = await fetch(
       `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchQuery)}&page=1&include_adult=false`
     );
@@ -50,21 +47,15 @@ serve(async (req) => {
         );
         const details = await detailsResponse.json();
 
-        // Get OMDB data for additional metadata
-        const omdbResponse = await fetch(
-          `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(show.name)}&type=series`
-        );
-        const omdbData = await omdbResponse.json();
-
         return {
           title: show.name,
           year: show.first_air_date?.split('-')[0] || 'N/A',
           poster: show.poster_path 
             ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
             : 'https://via.placeholder.com/500x750?text=No+Poster',
-          synopsis: show.overview || omdbData.Plot || 'No synopsis available',
+          synopsis: show.overview || 'No synopsis available',
           streaming: [], // Could be enhanced with a streaming availability API
-          genre: show.genre_ids ? show.genre_ids.map((id: number) => getGenreName(id)) : [],
+          genre: details.genres?.map((g: any) => g.name) || [],
           tone: searchParams.mood ? [searchParams.mood] : [],
           theme: details.genres?.map((g: any) => g.name) || [],
           type: 'show' as const
@@ -75,7 +66,7 @@ serve(async (req) => {
       }
     }));
 
-    // Search TV shows using OMDB API - specifically for series
+    // Search TV shows using OMDB API
     const omdbResponse = await fetch(
       `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(searchQuery)}&type=series`
     );
@@ -88,7 +79,7 @@ serve(async (req) => {
         try {
           // Get full details for each show
           const detailsResponse = await fetch(
-            `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series`
+            `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series&plot=full`
           );
           const details = await detailsResponse.json();
 
@@ -121,7 +112,7 @@ serve(async (req) => {
     // Limit to 6 results
     const finalResults = uniqueShows.slice(0, 6);
 
-    console.log(`Returning ${finalResults.length} TV show results`);
+    console.log(`Returning ${finalResults.length} TV show results:`, finalResults);
     
     return new Response(
       JSON.stringify({ movies: finalResults }),
