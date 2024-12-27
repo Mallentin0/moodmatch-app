@@ -27,7 +27,7 @@ export function Header({ onSignInClick }: HeaderProps) {
       >
         <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">MoodMatch</h1>
         <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
-          Tell us what you're in the mood for, and we'll use AI to find the perfect movie or show for you.
+          Describe how you feel and your mood and we'll use AI to find the perfect match.
         </p>
       </motion.div>
     </>
