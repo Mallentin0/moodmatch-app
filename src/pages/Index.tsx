@@ -25,10 +25,14 @@ const Index = () => {
 
   const handleSearch = async (prompt: string) => {
     setIsLoading(true);
+    console.log("Searching with prompt:", prompt);
+    
     try {
       const { data, error } = await supabase.functions.invoke('search-movies', {
         body: { prompt }
       });
+      
+      console.log("Search response:", data);
       
       if (error) {
         console.error('Error searching movies:', error);
@@ -40,6 +44,17 @@ const Index = () => {
         return;
       }
 
+      if (!data?.movies || !Array.isArray(data.movies)) {
+        console.error('Invalid response format:', data);
+        toast({
+          title: "Error",
+          description: "Received invalid response format from server",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("Setting results:", data.movies);
       setResults(data.movies);
     } catch (error) {
       console.error('Error:', error);
@@ -107,9 +122,9 @@ const Index = () => {
               exit={{ opacity: 0 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
             >
-              {results.map((movie) => (
+              {results.map((movie, index) => (
                 <EnhancedMovieCard 
-                  key={movie.title} 
+                  key={`${movie.title}-${index}`}
                   {...movie} 
                   onSave={() => handleSave(movie)}
                 />

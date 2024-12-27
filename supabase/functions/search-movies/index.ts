@@ -16,8 +16,10 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
+    console.log('Received prompt:', prompt);
 
     // First, use Claude to analyze the prompt
+    console.log('Calling Claude API...');
     const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -42,24 +44,39 @@ serve(async (req) => {
     });
 
     const claudeData = await claudeResponse.json();
+    console.log('Claude response:', claudeData);
+    
+    if (!claudeData.content || !claudeData.content[0] || !claudeData.content[0].text) {
+      throw new Error('Invalid Claude API response');
+    }
+
     const searchParams = JSON.parse(claudeData.content[0].text);
+    console.log('Parsed search parameters:', searchParams);
 
     // Use the analyzed parameters to search TMDB
-    const searchResponse = await fetch(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&query=${encodeURIComponent(searchParams.searchQuery)}${searchParams.year ? `&year=${searchParams.year}` : ''}${searchParams.genre ? `&with_genres=${searchParams.genre}` : ''}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    console.log('Calling TMDB API...');
+    const searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&query=${encodeURIComponent(searchParams.searchQuery)}${searchParams.year ? `&year=${searchParams.year}` : ''}${searchParams.genre ? `&with_genres=${searchParams.genre}` : ''}`;
+    console.log('TMDB URL:', searchUrl);
+    
+    const searchResponse = await fetch(searchUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     const searchData = await searchResponse.json();
+    console.log('TMDB search response:', searchData);
     
+    if (!searchData.results || !Array.isArray(searchData.results)) {
+      throw new Error('Invalid TMDB API response');
+    }
+
     // Transform and limit the results
     const movies = await Promise.all(
       searchData.results.slice(0, 6).map(async (movie: any) => {
+        console.log('Processing movie:', movie.title);
+        
         // Get more details for each movie
         const detailsResponse = await fetch(
           `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`,
@@ -72,6 +89,7 @@ serve(async (req) => {
         );
         
         const details = await detailsResponse.json();
+        console.log('Movie details:', details);
         
         // Extract streaming providers (US region)
         const providers = details['watch/providers']?.results?.US?.flatrate || [];
@@ -88,6 +106,8 @@ serve(async (req) => {
       })
     );
 
+    console.log('Final movies response:', movies);
+
     return new Response(
       JSON.stringify({ movies }),
       {
@@ -95,9 +115,9 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in search-movies function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal Server Error' }),
+      JSON.stringify({ error: error.message }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
