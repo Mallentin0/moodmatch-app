@@ -6,9 +6,9 @@ export function Footer() {
 
   return (
     <footer className="w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex flex-col items-center justify-between gap-4 py-8 md:h-24 md:flex-row md:py-0">
-        <div className="flex flex-col items-center gap-4 px-4 md:flex-row md:gap-2 md:px-0">
-          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+      <div className="container flex flex-col items-center justify-center gap-4 py-8 md:py-4">
+        <div className="flex flex-col items-center gap-4 px-4 text-center">
+          <p className="text-sm leading-loose text-muted-foreground">
             Built by{" "}
             <a
               href="https://mallentino.com"
