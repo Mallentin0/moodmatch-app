@@ -28,17 +28,17 @@ const Index = () => {
       // Get detailed information for each movie
       const detailedResults = await Promise.all(
         topResults.map(async (movie: any) => {
-          const details = await getMovieDetails(movie.id);
+          const details = await getMovieDetails(movie.imdbID);
           return MovieSchema.parse({
-            title: movie.title || "Untitled",
-            year: movie.release_date ? new Date(movie.release_date).getFullYear().toString() : "Unknown",
-            poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "/placeholder.svg",
-            synopsis: movie.overview || "No synopsis available",
-            streaming: details.watch?.providers?.results?.US?.flatrate?.map((p: any) => p.provider_name) || [],
-            ratings: details.ratings || [],
-            director: details.director,
-            actors: details.actors,
-            awards: details.awards,
+            title: details.Title || "Untitled",
+            year: details.Year || "Unknown",
+            poster: details.Poster !== "N/A" ? details.Poster : "/placeholder.svg",
+            synopsis: details.Plot || "No synopsis available",
+            streaming: [], // OMDB doesn't provide streaming info
+            ratings: details.Ratings || [],
+            director: details.Director,
+            actors: details.Actors,
+            awards: details.Awards,
           });
         })
       );
