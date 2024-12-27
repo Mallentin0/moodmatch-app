@@ -38,7 +38,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
         <Auth
           supabaseClient={supabase}
           view={view}
-          onViewChange={({ view }) => setView(view as 'sign_in' | 'sign_up')}
+          viewChange={({ view }) => setView(view as 'sign_in' | 'sign_up')}
           appearance={{
             theme: ThemeSupa,
             variables: {
@@ -97,6 +97,13 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
           }}
           theme="dark"
           providers={[]}
+          localization={{
+            variables: {
+              sign_up: {
+                password_validation_message: "Password must be at least 6 characters long",
+              },
+            },
+          }}
         />
       </DialogContent>
     </Dialog>
