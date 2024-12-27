@@ -22,24 +22,18 @@ serve(async (req) => {
     const words = prompt.trim().split(/\s+/);
     const isLikeDislikePrompt = prompt.toLowerCase().includes('similar to') || prompt.toLowerCase().includes('different from');
 
-    // Generate random page numbers for each API call
-    const randomPages = Array.from({ length: 5 }, () => Math.floor(Math.random() * 20) + 1);
-    console.log('Using random pages:', randomPages);
-
     if (words.length === 1 || words.length > 3 || isLikeDislikePrompt) {
       console.log('Searching by title/keyword:', prompt);
-      // Search across multiple random pages
-      for (const page of randomPages.slice(0, 2)) {
-        const titleResults = await searchMoviesByTitle(prompt, page);
-        allResults.push(...titleResults);
-      }
+      const titleResults = await searchMoviesByTitle(prompt);
+      allResults = titleResults;
     } else {
       console.log('Using Claude for analysis of complex prompt');
       const searchParams = await analyzePrompt(prompt);
       console.log('Parsed search parameters:', searchParams);
+
+      const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
       
-      // Search across multiple random pages with different sort options
-      for (const page of randomPages) {
+      for (const page of pages) {
         const searchUrl = buildSearchUrl(searchParams, page);
         console.log(`TMDB URL for page ${page}:`, searchUrl);
         
@@ -53,16 +47,12 @@ serve(async (req) => {
 
     if (allResults.length === 0) {
       console.log('No results found, trying broader search...');
-      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 20) + 1);
+      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 5) + 1);
       const fallbackData = await searchMovies(fallbackUrl);
       allResults.push(...fallbackData.results);
     }
 
-    // Shuffle results and take a random subset
     const shuffledResults = allResults
-      .filter((movie, index, self) => 
-        index === self.findIndex((m) => m.id === movie.id)
-      )
       .sort(() => Math.random() - 0.5)
       .slice(0, 6);
 
@@ -96,9 +86,7 @@ serve(async (req) => {
     console.error('Error in search-movies function:', error);
     
     try {
-      // Use a random page for fallback results
-      const randomPage = Math.floor(Math.random() * 20) + 1;
-      const fallbackUrl = buildSearchUrl({}, randomPage);
+      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 10) + 1);
       const fallbackData = await searchMovies(fallbackUrl);
       
       const movies = await Promise.all(

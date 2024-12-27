@@ -28,22 +28,15 @@ export function TVShowsTab() {
       const searchTerms = claudeData.keywords || [searchPrompt];
       let allShows: TVShow[] = [];
 
-      // Search multiple pages for each term to increase variety
+      // Search for each keyword
       for (const term of searchTerms) {
-        const randomPages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
-        for (const page of randomPages) {
-          const shows = await searchTVShows(`${term}&page=${page}`);
-          allShows = [...allShows, ...shows];
-        }
+        const shows = await searchTVShows(term);
+        allShows = [...allShows, ...shows];
       }
 
-      // Remove duplicates and randomly select shows
+      // Remove duplicates and format the results
       const uniqueShows = Array.from(new Map(allShows.map(show => [show.id, show])).values());
-      const randomShows = uniqueShows
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 6);
-
-      const formattedShows = randomShows.map((show: TVShow) => ({
+      const formattedShows = uniqueShows.map((show: TVShow) => ({
         title: show.name,
         year: show.premiered?.split('-')[0] || 'Unknown',
         poster: show.image?.original || show.image?.medium || '/placeholder.svg',
@@ -55,7 +48,7 @@ export function TVShowsTab() {
         theme: claudeData.themes || []
       }));
       
-      setResults(formattedShows);
+      setResults(formattedShows.slice(0, 6)); // Limit to 6 results like movies
     } catch (error) {
       console.error('Error searching shows:', error);
       toast({
