@@ -26,10 +26,12 @@ serve(async (req) => {
     // Build search query based on Claude's analysis
     const searchQuery = [
       searchParams.genre,
-      ...searchParams.keywords,
+      ...(searchParams.keywords || []),
       searchParams.mood,
       'tv series'
     ].filter(Boolean).join(' ');
+
+    console.log('Search query:', searchQuery);
 
     // Search TV shows using TMDB API
     const tmdbResponse = await fetch(
@@ -38,31 +40,32 @@ serve(async (req) => {
     const tmdbData = await tmdbResponse.json();
     
     // Get initial results from TMDB
-    const tmdbShows = tmdbData.results.slice(0, 3).map(async (show: any) => {
-      // Get additional details from OMDB
-      const omdbResponse = await fetch(
-        `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(show.name)}&type=series`
-      );
-      const omdbData = await omdbResponse.json();
+    const tmdbShows = await Promise.all(tmdbData.results.slice(0, 3).map(async (show: any) => {
+      try {
+        // Get additional details from OMDB
+        const omdbResponse = await fetch(
+          `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(show.name)}&type=series`
+        );
+        const omdbData = await omdbResponse.json();
 
-      return {
-        title: show.name,
-        year: show.first_air_date?.split('-')[0] || 'N/A',
-        poster: show.poster_path 
-          ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-          : 'https://via.placeholder.com/500x750?text=No+Poster',
-        synopsis: show.overview || omdbData.Plot || 'No synopsis available',
-        streaming: [], // We could enhance this with a streaming availability API
-        genre: show.genre_ids ? show.genre_ids.map((id: number) => getGenreName(id)) : [],
-        tone: searchParams.mood ? [searchParams.mood] : [],
-        theme: omdbData.Genre ? omdbData.Genre.split(', ') : [],
-        type: 'show' as const,
-        ratings: omdbData.Ratings ? omdbData.Ratings : [],
-        runtime: omdbData.Runtime || null,
-        director: omdbData.Director || null,
-        actors: omdbData.Actors ? omdbData.Actors.split(', ') : []
-      };
-    });
+        return {
+          title: show.name,
+          year: show.first_air_date?.split('-')[0] || 'N/A',
+          poster: show.poster_path 
+            ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+            : 'https://via.placeholder.com/500x750?text=No+Poster',
+          synopsis: show.overview || omdbData.Plot || 'No synopsis available',
+          streaming: [], // Could be enhanced with a streaming availability API
+          genre: show.genre_ids ? show.genre_ids.map((id: number) => getGenreName(id)) : [],
+          tone: searchParams.mood ? [searchParams.mood] : [],
+          theme: omdbData.Genre ? omdbData.Genre.split(', ') : [],
+          type: 'show' as const
+        };
+      } catch (error) {
+        console.error('Error processing TMDB show:', error);
+        return null;
+      }
+    }));
 
     // Search TV shows using OMDB API directly
     const omdbResponse = await fetch(
@@ -70,36 +73,40 @@ serve(async (req) => {
     );
     const omdbData = await omdbResponse.json();
     
-    const omdbShows = omdbData.Search ? 
-      await Promise.all(omdbData.Search.slice(0, 3).map(async (show: any) => {
-        // Get full details for each show
-        const detailsResponse = await fetch(
-          `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series`
-        );
-        const details = await detailsResponse.json();
+    const omdbShows = omdbData.Search 
+      ? await Promise.all(omdbData.Search.slice(0, 3).map(async (show: any) => {
+          try {
+            // Get full details for each show
+            const detailsResponse = await fetch(
+              `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series`
+            );
+            const details = await detailsResponse.json();
 
-        return {
-          title: show.Title,
-          year: show.Year.split('–')[0],
-          poster: show.Poster !== 'N/A' ? show.Poster : 'https://via.placeholder.com/500x750?text=No+Poster',
-          synopsis: details.Plot || 'No synopsis available',
-          streaming: [],
-          genre: details.Genre ? details.Genre.split(', ') : [],
-          tone: searchParams.mood ? [searchParams.mood] : [],
-          theme: details.Genre ? details.Genre.split(', ') : [],
-          type: 'show' as const,
-          ratings: details.Ratings || [],
-          runtime: details.Runtime || null,
-          director: details.Director || null,
-          actors: details.Actors ? details.Actors.split(', ') : []
-        };
-      }) : [];
+            return {
+              title: show.Title,
+              year: show.Year.split('–')[0],
+              poster: show.Poster !== 'N/A' ? show.Poster : 'https://via.placeholder.com/500x750?text=No+Poster',
+              synopsis: details.Plot || 'No synopsis available',
+              streaming: [],
+              genre: details.Genre ? details.Genre.split(', ') : [],
+              tone: searchParams.mood ? [searchParams.mood] : [],
+              theme: details.Genre ? details.Genre.split(', ') : [],
+              type: 'show' as const
+            };
+          } catch (error) {
+            console.error('Error processing OMDB show:', error);
+            return null;
+          }
+        }))
+      : [];
 
-    // Combine and deduplicate results
-    const allShows = await Promise.all([...tmdbShows, ...omdbShows]);
-    const uniqueShows = Array.from(new Map(allShows.map(show => 
-      [show.title, show]
-    )).values());
+    // Combine and deduplicate results, filtering out null values
+    const allShows = [...tmdbShows, ...omdbShows]
+      .filter((show): show is NonNullable<typeof show> => show !== null);
+    
+    const uniqueShows = Array.from(
+      new Map(allShows.map(show => [show.title, show])).values()
+    );
 
     // Limit to 6 results
     const finalResults = uniqueShows.slice(0, 6);
