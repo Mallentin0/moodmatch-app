@@ -1,5 +1,4 @@
 import { MoviePoster } from "./MoviePoster";
-import { MovieMetadataBadges } from "./MovieMetadataBadges";
 import { Card, CardContent } from "@/components/ui/card";
 import { Film, ThumbsUp, ThumbsDown, Info, Tv, Calendar, Tag, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,29 @@ interface MovieProps {
   onClick?: () => void;
   onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
+
+// Helper function to get platform display name
+const getPlatformDisplayName = (platform: string): string => {
+  const platformMap: { [key: string]: string } = {
+    'netflix': 'Netflix',
+    'hulu': 'Hulu',
+    'amazon': 'Prime Video',
+    'prime': 'Prime Video',
+    'disney': 'Disney+',
+    'disney+': 'Disney+',
+    'hbo': 'HBO Max',
+    'hbomax': 'HBO Max',
+    'apple': 'Apple TV+',
+    'appletv+': 'Apple TV+',
+    'paramount': 'Paramount+',
+    'peacock': 'Peacock',
+    'crunchyroll': 'Crunchyroll',
+    'tubi': 'Tubi'
+  };
+  
+  const normalizedPlatform = platform.toLowerCase().replace(/\s+/g, '');
+  return platformMap[normalizedPlatform] || platform;
+};
 
 export function EnhancedMovieCard({ 
   title, 
@@ -75,7 +97,7 @@ export function EnhancedMovieCard({
               className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
             >
               <Globe className="h-3 w-3" />
-              {platform}
+              {getPlatformDisplayName(platform)}
             </Badge>
           ))}
         </div>
@@ -102,6 +124,13 @@ export function EnhancedMovieCard({
                 {t}
               </Badge>
             ))}
+          </div>
+        )}
+
+        {/* Available on platforms */}
+        {streaming.length > 0 && (
+          <div className="text-sm text-muted-foreground">
+            Available on {streaming.map(getPlatformDisplayName).join(", ")}
           </div>
         )}
 
