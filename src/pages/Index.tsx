@@ -9,6 +9,7 @@ import { SearchSection } from "@/components/SearchSection";
 import { RefinementOptions } from "@/components/RefinementOptions";
 import { TVShowsTab } from "@/components/TVShowsTab";
 import { AnimeTab } from "@/components/AnimeTab";
+import { Footer } from "@/components/Footer";
 
 interface Movie {
   title: string;
@@ -175,6 +176,8 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <Footer />
 
       <AuthDialog 
         open={showAuthDialog} 
