@@ -119,6 +119,13 @@ export function AnimeTab() {
     }
   };
 
+  const handleSave = async (anime: AnimeResult) => {
+    toast({
+      title: "Coming soon",
+      description: "Saving anime recommendations will be available soon!",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <SearchSection
@@ -131,6 +138,7 @@ export function AnimeTab() {
       <MovieResults 
         isLoading={isLoading}
         results={results}
+        onSaveMovie={handleSave}
         onFeedback={handleFeedback}
       />
     </div>

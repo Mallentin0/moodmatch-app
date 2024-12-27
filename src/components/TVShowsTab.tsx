@@ -103,6 +103,13 @@ export function TVShowsTab() {
     }
   };
 
+  const handleSave = async (show: any) => {
+    toast({
+      title: "Coming soon",
+      description: "Saving TV shows will be available soon!",
+    });
+  };
+
   return (
     <>
       <SearchSection
@@ -116,6 +123,7 @@ export function TVShowsTab() {
       <MovieResults 
         isLoading={isLoading}
         results={results}
+        onSaveMovie={handleSave}
         onFeedback={handleFeedback}
       />
     </>

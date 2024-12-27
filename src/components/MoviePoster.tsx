@@ -1,24 +1,31 @@
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { BookmarkPlus } from "lucide-react";
 
-export interface MoviePosterProps {
+interface MoviePosterProps {
   poster: string;
   title: string;
-  className?: string;
+  onSave?: () => void;
 }
 
-export function MoviePoster({ poster, title, className }: MoviePosterProps) {
+export function MoviePoster({ poster, title, onSave }: MoviePosterProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className={cn("relative aspect-[2/3] overflow-hidden rounded-lg", className)}
-    >
+    <div className="relative aspect-[2/3] overflow-hidden">
       <img
-        src={poster}
-        alt={`${title} poster`}
-        className="h-full w-full object-cover transition-all hover:scale-105"
+        src={poster || "/placeholder.svg"}
+        alt={title}
+        className="object-cover w-full h-full"
       />
-    </motion.div>
+      {onSave && (
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute top-2 right-2"
+          onClick={onSave}
+        >
+          <BookmarkPlus className="w-4 h-4 mr-2" />
+          Save
+        </Button>
+      )}
+    </div>
   );
 }
