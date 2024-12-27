@@ -25,5 +25,10 @@ Return a JSON object with these extracted preferences that we can use to search 
     ],
   });
 
+  // Check if the content is available and is of type TextBlock
+  if (!message.content[0] || !('text' in message.content[0])) {
+    throw new Error('Unexpected response format from Claude');
+  }
+
   return message.content[0].text;
 };
