@@ -25,6 +25,8 @@ export function EnhancedMovieCard({
   theme = [],
   onSave 
 }: MovieProps) {
+  const decade = year ? `${year.slice(0, 3)}0s` : 'Unknown';
+
   return (
     <div className="glass-card rounded-lg overflow-hidden animate-in">
       <div className="relative aspect-[2/3] overflow-hidden">
@@ -52,49 +54,72 @@ export function EnhancedMovieCard({
         <p className="text-sm text-gray-600 mb-4">{synopsis}</p>
         
         <div className="space-y-2">
-          {/* Streaming Platforms */}
-          {streaming && streaming.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {streaming.map((platform) => (
-                <Badge key={platform} variant="secondary" className="text-xs">
-                  {platform}
-                </Badge>
-              ))}
-            </div>
-          )}
-          
-          {/* Genres */}
-          {genre && genre.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {genre.map((g) => (
+          {/* Category Labels */}
+          <div className="grid grid-cols-2 gap-1 text-xs text-gray-500 mb-1">
+            <span>Genre</span>
+            <span>Tone</span>
+            <span>Platform</span>
+            <span>Theme</span>
+          </div>
+
+          {/* Genre Section */}
+          <div className="flex flex-wrap gap-2">
+            {genre.length > 0 ? (
+              genre.map((g) => (
                 <Badge key={g} variant="outline" className="text-xs bg-blue-50">
                   {g}
                 </Badge>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <Badge variant="outline" className="text-xs bg-gray-50">No genre specified</Badge>
+            )}
+          </div>
           
-          {/* Tone */}
-          {tone && tone.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tone.map((t) => (
+          {/* Tone Section */}
+          <div className="flex flex-wrap gap-2">
+            {tone.length > 0 ? (
+              tone.map((t) => (
                 <Badge key={t} variant="outline" className="text-xs bg-purple-50">
                   {t}
                 </Badge>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <Badge variant="outline" className="text-xs bg-gray-50">No tone specified</Badge>
+            )}
+          </div>
           
-          {/* Theme */}
-          {theme && theme.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {theme.map((t) => (
+          {/* Streaming Platforms Section */}
+          <div className="flex flex-wrap gap-2">
+            {streaming.length > 0 ? (
+              streaming.map((platform) => (
+                <Badge key={platform} variant="secondary" className="text-xs">
+                  {platform}
+                </Badge>
+              ))
+            ) : (
+              <Badge variant="secondary" className="text-xs">No platform info</Badge>
+            )}
+          </div>
+          
+          {/* Theme Section */}
+          <div className="flex flex-wrap gap-2">
+            {theme.length > 0 ? (
+              theme.map((t) => (
                 <Badge key={t} variant="outline" className="text-xs bg-green-50">
                   {t}
                 </Badge>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <Badge variant="outline" className="text-xs bg-gray-50">No theme specified</Badge>
+            )}
+          </div>
+
+          {/* Decade Badge */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Badge variant="outline" className="text-xs bg-yellow-50">
+              {decade}
+            </Badge>
+          </div>
         </div>
       </div>
     </div>
