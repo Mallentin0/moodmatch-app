@@ -12,17 +12,17 @@ export function MovieFeedbackButtons({ type = 'movie', onFeedback }: MovieFeedba
   return (
     <div className="flex justify-between items-center pt-4 border-t border-primary/10">
       <Badge 
-        variant="secondary" 
-        className="flex items-center space-x-1 bg-primary/5 text-primary border-primary/20"
+        variant="outline" 
+        className="bg-primary/5 text-primary border-primary/20 capitalize flex items-center gap-1.5"
       >
         {type === 'movie' ? (
-          <Film className="h-3 w-3 mr-1" />
+          <Film className="h-3 w-3" />
         ) : type === 'show' ? (
-          <Tv className="h-3 w-3 mr-1" />
+          <Tv className="h-3 w-3" />
         ) : (
-          <Film className="h-3 w-3 mr-1" />
+          <Film className="h-3 w-3" />
         )}
-        <span className="capitalize">{type}</span>
+        {type}
       </Badge>
       
       <div className="flex space-x-1">

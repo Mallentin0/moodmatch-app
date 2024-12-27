@@ -44,12 +44,12 @@ export function EnhancedMovieCard({
 
   return (
     <Card 
-      className="group overflow-hidden transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/20 bg-card/90 border-primary/20 cursor-pointer backdrop-blur-sm"
+      className="group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 bg-gradient-to-br from-card/90 to-card/80 border-primary/10 cursor-pointer backdrop-blur-sm"
       onClick={onClick}
     >
       <div className="relative">
         <MoviePoster poster={poster} title={title} onSave={onSave} />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
         <MovieMetadataBubbles
           year={year}
@@ -57,18 +57,18 @@ export function EnhancedMovieCard({
           streaming={streaming}
         />
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-          <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">
-            {title} {year && <span className="text-sm font-normal">({year})</span>}
+        <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+          <h3 className="text-2xl font-bold text-foreground mb-2 line-clamp-2">
+            {title} {year && <span className="text-base font-normal text-muted-foreground">({year})</span>}
           </h3>
           
           {streaming.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-3">
               {streaming.map((platform) => (
                 <Badge 
                   key={platform}
                   variant="secondary"
-                  className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1 animate-fade-in"
+                  className="bg-primary/10 text-primary border-primary/20 flex items-center gap-1 animate-fade-in"
                 >
                   <Globe className="h-3 w-3" />
                   {getPlatformDisplayName(platform)}
@@ -79,8 +79,8 @@ export function EnhancedMovieCard({
         </div>
       </div>
 
-      <CardContent className="p-4 space-y-4">
-        <p className="text-sm text-muted-foreground line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+      <CardContent className="p-6 space-y-4">
+        <p className="text-base text-muted-foreground line-clamp-3 group-hover:line-clamp-none transition-all duration-500">
           {synopsis}
         </p>
         
@@ -90,7 +90,7 @@ export function EnhancedMovieCard({
               <Badge 
                 key={t}
                 variant="outline"
-                className="text-xs bg-primary/5 border-primary/20"
+                className="bg-secondary/10 border-secondary/20 text-secondary-foreground"
               >
                 {t}
               </Badge>
@@ -98,9 +98,9 @@ export function EnhancedMovieCard({
             {theme.length > 3 && (
               <Badge 
                 variant="outline"
-                className="text-xs bg-primary/5 border-primary/20"
+                className="bg-secondary/10 border-secondary/20 text-secondary-foreground"
               >
-                +{theme.length - 3} more
+                +{theme.length - 3}
               </Badge>
             )}
           </div>
