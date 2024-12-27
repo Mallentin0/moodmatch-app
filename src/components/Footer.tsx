@@ -1,4 +1,4 @@
-import { Github, Twitter, ExternalLink, Instagram } from "lucide-react";
+import { Github, Twitter, ExternalLink, Instagram, Mail } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Footer() {
@@ -20,6 +20,12 @@ export function Footer() {
             </a>
             . © {currentYear} All rights reserved.
           </p>
+          <a
+            href="mailto:info@mallentino.com"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            info@mallentino.com
+          </a>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" size="icon" asChild>
