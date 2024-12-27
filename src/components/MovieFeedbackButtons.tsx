@@ -10,10 +10,10 @@ interface MovieFeedbackButtonsProps {
 
 export function MovieFeedbackButtons({ type = 'movie', onFeedback }: MovieFeedbackButtonsProps) {
   return (
-    <div className="flex justify-between items-center pt-4 border-t border-primary/20">
+    <div className="flex justify-between items-center pt-4 border-t border-primary/10">
       <Badge 
         variant="secondary" 
-        className="flex items-center space-x-1 bg-primary/10 text-primary"
+        className="flex items-center space-x-1 bg-primary/5 text-primary border-primary/20"
       >
         {type === 'movie' ? (
           <Film className="h-3 w-3 mr-1" />
@@ -25,11 +25,11 @@ export function MovieFeedbackButtons({ type = 'movie', onFeedback }: MovieFeedba
         <span className="capitalize">{type}</span>
       </Badge>
       
-      <div className="flex space-x-2">
+      <div className="flex space-x-1">
         <Button 
           size="sm" 
           variant="ghost" 
-          className="text-primary hover:text-primary hover:bg-primary/20"
+          className="text-primary hover:text-primary hover:bg-primary/10 rounded-full w-8 h-8 p-0"
           onClick={(e) => onFeedback?.('like', e)}
         >
           <ThumbsUp className="h-4 w-4" />
@@ -37,7 +37,7 @@ export function MovieFeedbackButtons({ type = 'movie', onFeedback }: MovieFeedba
         <Button 
           size="sm" 
           variant="ghost" 
-          className="text-destructive hover:text-destructive hover:bg-destructive/20"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full w-8 h-8 p-0"
           onClick={(e) => onFeedback?.('dislike', e)}
         >
           <ThumbsDown className="h-4 w-4" />
@@ -45,7 +45,7 @@ export function MovieFeedbackButtons({ type = 'movie', onFeedback }: MovieFeedba
         <Button 
           size="sm" 
           variant="ghost" 
-          className="text-muted-foreground hover:text-foreground hover:bg-muted"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full w-8 h-8 p-0"
           onClick={(e) => onFeedback?.('info', e)}
         >
           <Info className="h-4 w-4" />
