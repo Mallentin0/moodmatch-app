@@ -6,7 +6,7 @@ export function Header() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8 sm:mb-12 px-4 sm:px-6 lg:px-8"
+        className="text-center mb-8 sm:mb-12 px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12"
       >
         <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">MoodMatch</h1>
         <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
