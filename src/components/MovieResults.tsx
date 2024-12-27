@@ -42,7 +42,7 @@ export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: Mo
             {filteredResults.map((movie, index) => (
               <EnhancedMovieCard 
                 key={`${movie.title}-${index}`}
-                {...movie} 
+                {...movie}
                 onSave={() => onSaveMovie(movie)}
                 onClick={() => handleMovieClick(movie)}
                 onFeedback={onFeedback}
