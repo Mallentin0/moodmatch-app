@@ -11,7 +11,12 @@ export function Header({ onSignInClick }: HeaderProps) {
     // @ts-ignore - kofiWidgetOverlay is added by the script
     if (window.kofiWidgetOverlay) {
       // @ts-ignore
-      window.kofiWidgetOverlay.toggleFloatingButton();
+      window.kofiWidgetOverlay.draw('moodwatch', {
+        'type': 'floating-chat',
+        'floating-chat.donateButton.text': 'Support me',
+        'floating-chat.donateButton.background-color': '#ff5f5f',
+        'floating-chat.donateButton.text-color': '#fff'
+      });
     }
   };
 
