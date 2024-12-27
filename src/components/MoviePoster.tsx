@@ -8,6 +8,19 @@ interface MoviePosterProps {
 }
 
 export function MoviePoster({ poster, title, onSave }: MoviePosterProps) {
+  const handleSaveClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click event from firing
+    if (window.kofiWidgetOverlay) {
+      // @ts-ignore
+      window.kofiWidgetOverlay.draw('moodwatch', {
+        'type': 'floating-chat',
+        'floating-chat.donateButton.text': 'Support me',
+        'floating-chat.donateButton.background-color': '#ff5f5f',
+        'floating-chat.donateButton.text-color': '#fff'
+      });
+    }
+  };
+
   return (
     <div className="relative aspect-[2/3] overflow-hidden">
       <img
@@ -15,17 +28,15 @@ export function MoviePoster({ poster, title, onSave }: MoviePosterProps) {
         alt={title}
         className="object-cover w-full h-full"
       />
-      {onSave && (
-        <Button
-          variant="secondary"
-          size="sm"
-          className="absolute top-2 right-2"
-          onClick={onSave}
-        >
-          <BookmarkPlus className="w-4 h-4 mr-2" />
-          Save
-        </Button>
-      )}
+      <Button
+        variant="secondary"
+        size="sm"
+        className="absolute top-2 right-2"
+        onClick={handleSaveClick}
+      >
+        <BookmarkPlus className="w-4 h-4 mr-2" />
+        Save
+      </Button>
     </div>
   );
 }
