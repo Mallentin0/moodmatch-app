@@ -13,7 +13,7 @@ export interface MovieCardProps {
   poster: string;
   synopsis: string;
   streaming?: string[];
-  ratings?: { Source: string; Value: string }[];
+  ratings?: { Source?: string; Value?: string }[];
   director?: string;
   actors?: string;
   awards?: string;
@@ -47,7 +47,7 @@ export const MovieCard = ({
           className="w-full h-full object-cover"
           loading="lazy"
           onError={(e) => {
-            e.currentTarget.src = "/photo-1526374965328-7f61d4dc18c5";
+            e.currentTarget.src = "/placeholder.svg";
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

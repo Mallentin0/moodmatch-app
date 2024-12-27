@@ -47,8 +47,8 @@ export const MovieSchema = z.object({
   synopsis: z.string(),
   streaming: z.array(z.string()).optional(),
   ratings: z.array(z.object({
-    Source: z.string(),
-    Value: z.string()
+    Source: z.string().optional(),
+    Value: z.string().optional()
   })).optional(),
   director: z.string().optional(),
   actors: z.string().optional(),
