@@ -1,7 +1,0 @@
-project_id = "cmetoqajlpzpbubjequt"
-
-[search-movies]
-verify_jwt = false
-
-[search-anime]
-verify_jwt = false

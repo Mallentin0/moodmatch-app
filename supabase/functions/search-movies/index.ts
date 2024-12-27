@@ -2,7 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { analyzePrompt } from "./claude.ts";
 import { fetchMovieDetails, searchMovies, buildSearchUrl, type MovieResult } from "./tmdb.ts";
-import { enrichWithOMDbData } from "./omdb.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,7 +57,7 @@ serve(async (req) => {
     // Shuffle and take 6 random results
     const shuffledResults = allResults
       .sort(() => Math.random() - 0.5)
-      .slice(0, 12);
+      .slice(0, 12); // Get more results initially to filter by streaming
 
     // Transform and filter the results based on streaming platforms
     const movies: MovieResult[] = await Promise.all(
@@ -79,11 +78,11 @@ serve(async (req) => {
           );
           
           if (!hasRequestedPlatform) {
-            return null;
+            return null; // Skip this movie if it's not available on requested platforms
           }
         }
-
-        const baseMovie = {
+        
+        return {
           title: movie.title,
           year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
           poster: movie.poster_path 
@@ -95,9 +94,6 @@ serve(async (req) => {
           tone: searchParams.tone || [],
           theme: searchParams.theme || []
         };
-
-        // Enrich with OMDb data
-        return await enrichWithOMDbData(baseMovie);
       })
     );
 
@@ -118,23 +114,18 @@ serve(async (req) => {
       const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 10) + 1);
       const fallbackData = await searchMovies(fallbackUrl);
       
-      const movies = await Promise.all(
-        fallbackData.results
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 6)
-          .map(async (movie: any) => {
-            const baseMovie = {
-              title: movie.title,
-              year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
-              poster: movie.poster_path 
-                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                : 'https://via.placeholder.com/500x750?text=No+Poster',
-              synopsis: movie.overview || 'No synopsis available',
-              streaming: []
-            };
-            return await enrichWithOMDbData(baseMovie);
-          })
-      );
+      const movies = fallbackData.results
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6)
+        .map((movie: any) => ({
+          title: movie.title,
+          year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+          poster: movie.poster_path 
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : 'https://via.placeholder.com/500x750?text=No+Poster',
+          synopsis: movie.overview || 'No synopsis available',
+          streaming: []
+        }));
 
       return new Response(
         JSON.stringify({ movies }),
