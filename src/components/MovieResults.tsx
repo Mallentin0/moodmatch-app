@@ -3,31 +3,20 @@ import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
 import { MovieDialog } from "@/components/MovieDialog";
 import { useState } from "react";
-
-interface Movie {
-  title: string;
-  year: string;
-  poster: string;
-  synopsis: string;
-  streaming?: string[];
-  theme?: string[];
-  genre?: string[];
-  tone?: string[];
-  type?: 'movie' | 'show';
-}
+import { Media } from "@/types/media";
 
 interface MovieResultsProps {
   isLoading: boolean;
-  results: Movie[];
-  onSaveMovie: (movie: Movie) => void;
+  results: Media[];
+  onSaveMovie: (movie: Media) => void;
   onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
 
 export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: MovieResultsProps) {
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<Media | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleMovieClick = (movie: Movie) => {
+  const handleMovieClick = (movie: Media) => {
     setSelectedMovie(movie);
     setDialogOpen(true);
   };
