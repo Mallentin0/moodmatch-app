@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Film, ThumbsUp, ThumbsDown, Info, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MediaType } from "@/types/media";
 
 interface MovieProps {
   title: string;
@@ -14,7 +15,7 @@ interface MovieProps {
   genre?: string[];
   tone?: string[];
   theme?: string[];
-  type?: 'movie' | 'show';
+  type?: MediaType;
   onSave?: () => void;
   onClick?: () => void;
   onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
@@ -40,6 +41,17 @@ export function EnhancedMovieCard({
     e.stopPropagation();
     if (onFeedback) {
       onFeedback(feedbackType, title);
+    }
+  };
+
+  const getTypeIcon = () => {
+    switch (type) {
+      case 'show':
+        return <Tv className="h-3 w-3 mr-1" />;
+      case 'anime':
+        return <Film className="h-3 w-3 mr-1" />;
+      default:
+        return <Film className="h-3 w-3 mr-1" />;
     }
   };
 
@@ -75,11 +87,7 @@ export function EnhancedMovieCard({
               variant="secondary" 
               className="flex items-center space-x-1 bg-primary/10 text-primary"
             >
-              {type === 'movie' ? (
-                <Film className="h-3 w-3 mr-1" />
-              ) : (
-                <Tv className="h-3 w-3 mr-1" />
-              )}
+              {getTypeIcon()}
               <span className="capitalize">{type}</span>
             </Badge>
             {streaming.length > 0 && (
