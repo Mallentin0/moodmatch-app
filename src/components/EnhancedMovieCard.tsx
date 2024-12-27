@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { MovieMetadataBubbles } from "./MovieMetadataBubbles";
 import { MovieFeedbackButtons } from "./MovieFeedbackButtons";
 import { getPlatformDisplayName } from "@/utils/platformUtils";
+import { Globe } from "lucide-react";
 
 interface MovieProps {
   title: string;
@@ -57,16 +58,29 @@ export function EnhancedMovieCard({
         />
 
         <div className="absolute bottom-0 left-0 p-4">
-          <h3 className="text-xl font-bold text-white">
+          <h3 className="text-xl font-bold text-white mb-2">
             {title}
           </h3>
+          {streaming.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {streaming.map((platform) => (
+                <Badge 
+                  key={platform}
+                  variant="secondary"
+                  className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
+                >
+                  <Globe className="h-3 w-3" />
+                  {getPlatformDisplayName(platform)}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <CardContent className="p-4 space-y-4">
         <p className="text-sm text-muted-foreground line-clamp-3">{synopsis}</p>
         
-        {/* Theme Badges */}
         {theme.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {theme.map((t) => (
@@ -78,13 +92,6 @@ export function EnhancedMovieCard({
                 {t}
               </Badge>
             ))}
-          </div>
-        )}
-
-        {/* Available on platforms */}
-        {streaming.length > 0 && (
-          <div className="text-sm text-muted-foreground">
-            Available on {streaming.map(getPlatformDisplayName).join(", ")}
           </div>
         )}
 

@@ -1,4 +1,7 @@
 import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { Globe } from "lucide-react";
+import { getPlatformDisplayName } from "@/utils/platformUtils";
 
 interface MovieCardProps {
   title: string;
@@ -24,23 +27,29 @@ export const MovieCard = ({ title, year, poster, synopsis, streaming = [] }: Mov
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        
+        {/* Streaming platforms overlay */}
+        <div className="absolute bottom-4 left-4 right-4">
+          {streaming.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {streaming.map((platform) => (
+                <Badge
+                  key={platform}
+                  variant="secondary"
+                  className="bg-black/60 backdrop-blur-sm text-white flex items-center gap-1"
+                >
+                  <Globe className="h-3 w-3" />
+                  {getPlatformDisplayName(platform)}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <div className="p-4">
         <h3 className="text-lg font-semibold">{title}</h3>
         <p className="text-sm text-gray-500 mb-2">{year}</p>
-        <p className="text-sm line-clamp-3 text-gray-600 mb-4">{synopsis}</p>
-        {streaming.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {streaming.map((platform) => (
-              <span
-                key={platform}
-                className="px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-600"
-              >
-                {platform}
-              </span>
-            ))}
-          </div>
-        )}
+        <p className="text-sm line-clamp-3 text-gray-600">{synopsis}</p>
       </div>
     </motion.div>
   );
