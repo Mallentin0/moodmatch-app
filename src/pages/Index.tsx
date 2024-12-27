@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchSection } from "@/components/SearchSection";
 import { RefinementOptions } from "@/components/RefinementOptions";
 import { TVShowsTab } from "@/components/TVShowsTab";
+import { AnimeTab } from "@/components/AnimeTab";
 
 interface Movie {
   title: string;
@@ -28,13 +29,6 @@ const REFINEMENT_OPTIONS = {
     { label: "More action", prompt: "with more action" },
     { label: "More dramatic", prompt: "but more dramatic" },
     { label: "More romantic", prompt: "with more romance" },
-  ],
-  anime: [
-    { label: "More like this", prompt: "similar anime" },
-    { label: "More action", prompt: "more action anime" },
-    { label: "More dramatic", prompt: "more dramatic anime" },
-    { label: "More romantic", prompt: "more romantic anime" },
-    { label: "More fantasy", prompt: "more fantasy anime" },
   ]
 };
 
@@ -67,11 +61,7 @@ const Index = () => {
         throw new Error('Invalid response format');
       }
 
-      const filteredResults = data.movies.filter(movie => 
-        !movie.genre?.some(g => g.toLowerCase() === 'hentai')
-      );
-
-      setResults(filteredResults);
+      setResults(data.movies);
       setLastPrompt(finalPrompt);
     } catch (error) {
       console.error('Error:', error);
@@ -181,25 +171,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="anime">
-            <SearchSection
-              activeTab="anime"
-              prompt={prompt}
-              isLoading={isLoading}
-              onPromptChange={setPrompt}
-              onSubmit={handleSubmit}
-            />
-            {results.length > 0 && (
-              <RefinementOptions
-                options={REFINEMENT_OPTIONS.anime}
-                onRefinement={handleRefinement}
-              />
-            )}
-            <MovieResults 
-              isLoading={isLoading}
-              results={results}
-              onSaveMovie={handleSave}
-              onFeedback={handleFeedback}
-            />
+            <AnimeTab />
           </TabsContent>
         </Tabs>
       </main>
