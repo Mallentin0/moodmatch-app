@@ -20,19 +20,17 @@ serve(async (req) => {
 
     let allResults = [];
     const words = prompt.trim().split(/\s+/);
+    const isLikeDislikePrompt = prompt.toLowerCase().includes('similar to') || prompt.toLowerCase().includes('different from');
 
-    // If it's a single word or appears to be a movie title (more than 3 words)
-    if (words.length === 1 || words.length > 3) {
+    if (words.length === 1 || words.length > 3 || isLikeDislikePrompt) {
       console.log('Searching by title/keyword:', prompt);
       const titleResults = await searchMoviesByTitle(prompt);
       allResults = titleResults;
     } else {
-      // Use Claude for more complex prompts
       console.log('Using Claude for analysis of complex prompt');
       const searchParams = await analyzePrompt(prompt);
       console.log('Parsed search parameters:', searchParams);
 
-      // Get multiple random pages to increase variety
       const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
       
       for (const page of pages) {
@@ -47,7 +45,6 @@ serve(async (req) => {
       }
     }
 
-    // If no results found, try a broader search
     if (allResults.length === 0) {
       console.log('No results found, trying broader search...');
       const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 5) + 1);
@@ -55,12 +52,10 @@ serve(async (req) => {
       allResults.push(...fallbackData.results);
     }
 
-    // Shuffle and take up to 6 random results
     const shuffledResults = allResults
       .sort(() => Math.random() - 0.5)
       .slice(0, 6);
 
-    // Transform the results
     const movies: MovieResult[] = await Promise.all(
       shuffledResults.map(async (movie: any) => {
         console.log('Processing movie:', movie.title);
@@ -77,7 +72,6 @@ serve(async (req) => {
           type: 'movie'
         };
 
-        // Enrich with OMDb data
         return await enrichWithOMDbData(baseMovie);
       })
     );
@@ -91,7 +85,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in search-movies function:', error);
     
-    // Return random popular movies in case of error
     try {
       const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 10) + 1);
       const fallbackData = await searchMovies(fallbackUrl);

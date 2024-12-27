@@ -81,7 +81,6 @@ const Index = () => {
         return;
       }
 
-      // Filter out results with Hentai genre before sorting
       const filteredResults = data.movies.filter(movie => 
         !movie.genre?.some(g => g.toLowerCase() === 'hentai')
       );
@@ -120,20 +119,28 @@ const Index = () => {
     handleSearch(refinementPrompt, true);
   };
 
-  const handleFeedback = (type: 'like' | 'dislike' | 'info', title: string) => {
+  const handleFeedback = async (type: 'like' | 'dislike' | 'info', title: string) => {
     let feedbackPrompt = "";
     switch (type) {
       case 'like':
-        feedbackPrompt = `more like ${title}`;
+        feedbackPrompt = `more movies similar to ${title}`;
+        toast({
+          title: "Finding similar movies",
+          description: `Looking for more movies like ${title}`,
+        });
         break;
       case 'dislike':
-        feedbackPrompt = `different from ${title}`;
+        feedbackPrompt = `different movies from ${title}, excluding similar themes and genres`;
+        toast({
+          title: "Updating recommendations",
+          description: `Finding different movies from ${title}`,
+        });
         break;
       case 'info':
         feedbackPrompt = `similar to ${title} but with different themes`;
         break;
     }
-    handleSearch(feedbackPrompt, true);
+    await handleSearch(feedbackPrompt, true);
   };
 
   const handleSave = async (movie: Movie) => {
