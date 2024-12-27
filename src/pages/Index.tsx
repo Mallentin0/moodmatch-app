@@ -9,6 +9,7 @@ import { RefinementOptions } from "@/components/RefinementOptions";
 import { TVShowsTab } from "@/components/TVShowsTab";
 import { AnimeTab } from "@/components/AnimeTab";
 import { Footer } from "@/components/Footer";
+import { Heart } from "lucide-react";
 
 interface Movie {
   title: string;
