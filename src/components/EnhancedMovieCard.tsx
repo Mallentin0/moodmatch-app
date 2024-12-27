@@ -45,7 +45,7 @@ export function EnhancedMovieCard({
 
   return (
     <Card 
-      className="overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-primary/20 bg-card border-primary/20 cursor-pointer"
+      className="overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-primary/20 bg-card border-primary/20 cursor-pointer relative"
       onClick={onClick}
     >
       <div className="relative">
@@ -56,6 +56,20 @@ export function EnhancedMovieCard({
             {title} {year && `(${year})`}
           </h3>
         </div>
+        {/* Streaming Platforms Bubbles */}
+        {streaming.length > 0 && (
+          <div className="absolute top-2 left-2 flex flex-wrap gap-2">
+            {streaming.map((platform) => (
+              <Badge 
+                key={platform}
+                variant="secondary"
+                className="bg-black/50 text-white backdrop-blur-sm border border-white/20"
+              >
+                {platform}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       <CardContent className="p-4 space-y-4">
@@ -70,26 +84,19 @@ export function EnhancedMovieCard({
         />
 
         <div className="flex justify-between items-center pt-4 border-t border-primary/20">
-          <div className="flex items-center space-x-2">
-            <Badge 
-              variant="secondary" 
-              className="flex items-center space-x-1 bg-primary/10 text-primary"
-            >
-              {type === 'movie' ? (
-                <Film className="h-3 w-3 mr-1" />
-              ) : type === 'show' ? (
-                <Tv className="h-3 w-3 mr-1" />
-              ) : (
-                <Film className="h-3 w-3 mr-1" />
-              )}
-              <span className="capitalize">{type}</span>
-            </Badge>
-            {streaming.length > 0 && (
-              <span className="text-sm text-muted-foreground">
-                on {streaming.join(", ")}
-              </span>
+          <Badge 
+            variant="secondary" 
+            className="flex items-center space-x-1 bg-primary/10 text-primary"
+          >
+            {type === 'movie' ? (
+              <Film className="h-3 w-3 mr-1" />
+            ) : type === 'show' ? (
+              <Tv className="h-3 w-3 mr-1" />
+            ) : (
+              <Film className="h-3 w-3 mr-1" />
             )}
-          </div>
+            <span className="capitalize">{type}</span>
+          </Badge>
           
           <div className="flex space-x-2 ml-auto">
             <Button 
