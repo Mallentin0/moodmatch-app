@@ -1,11 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { SearchPrompt } from "@/components/SearchPrompt";
-import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
-import { LoadingState } from "@/components/LoadingState";
-import { motion, AnimatePresence } from "framer-motion";
+import { Header } from "@/components/Header";
+import { MovieResults } from "@/components/MovieResults";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { LogIn } from "lucide-react";
 import { AuthDialog } from "@/components/AuthDialog";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -16,6 +13,8 @@ interface Movie {
   synopsis: string;
   streaming?: string[];
   theme?: string[];
+  genre?: string[];
+  tone?: string[];
 }
 
 const Index = () => {
@@ -55,7 +54,6 @@ const Index = () => {
         return;
       }
 
-      // Sort movies to prioritize those with themes
       const sortedMovies = [...data.movies].sort((a, b) => {
         const aHasThemes = a.theme && a.theme.length > 0;
         const bHasThemes = b.theme && b.theme.length > 0;
@@ -98,51 +96,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 px-4">
       <div className="max-w-7xl mx-auto py-12">
-        <div className="flex justify-end mb-8">
-          <Button
-            variant="outline"
-            onClick={() => setShowAuthDialog(true)}
-            className="flex items-center gap-2"
-          >
-            <LogIn className="w-4 h-4" />
-            Sign In
-          </Button>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl font-bold mb-4">MoodMatch</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Tell us what you're in the mood for, and we'll use AI to find the perfect movie or show for you.
-          </p>
-        </motion.div>
-
+        <Header onSignInClick={() => setShowAuthDialog(true)} />
         <SearchPrompt onSearch={handleSearch} isLoading={isLoading} />
-
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <LoadingState key="loading" />
-          ) : results.length > 0 ? (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
-            >
-              {results.map((movie, index) => (
-                <EnhancedMovieCard 
-                  key={`${movie.title}-${index}`}
-                  {...movie} 
-                  onSave={() => handleSave(movie)}
-                />
-              ))}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        <MovieResults 
+          isLoading={isLoading}
+          results={results}
+          onSaveMovie={handleSave}
+        />
       </div>
 
       <AuthDialog 
