@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Film, ThumbsUp, ThumbsDown, Info, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MediaType } from "@/types/media";
 
 interface MovieProps {
   title: string;
@@ -14,7 +15,7 @@ interface MovieProps {
   genre?: string[];
   tone?: string[];
   theme?: string[];
-  type?: 'movie' | 'show';
+  type?: MediaType;
   onSave?: () => void;
   onClick?: () => void;
   onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
