@@ -33,11 +33,12 @@ serve(async (req) => {
         messages: [{
           role: 'user',
           content: `Analyze this movie request and extract key search terms: "${prompt}". 
+          If the request is vague or unclear, interpret it as best as possible and add relevant search terms.
           Return only a JSON object with these fields:
-          - searchQuery (string): The main search terms
-          - genre (string, optional): The main genre if mentioned
+          - searchQuery (string): The main search terms (if unclear, use "popular" or "highly rated")
+          - genre (string, optional): The main genre if mentioned or implied
           - year (number, optional): Specific year or decade mentioned
-          - mood (string, optional): The mood/tone mentioned
+          - mood (string, optional): The mood/tone mentioned or implied
           Format as valid JSON only, no other text.`
         }]
       })
@@ -55,7 +56,19 @@ serve(async (req) => {
 
     // Use the analyzed parameters to search TMDB
     console.log('Calling TMDB API...');
-    const searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&query=${encodeURIComponent(searchParams.searchQuery)}${searchParams.year ? `&year=${searchParams.year}` : ''}${searchParams.genre ? `&with_genres=${searchParams.genre}` : ''}`;
+    let searchUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false`;
+    
+    // Add search parameters if they exist
+    if (searchParams.searchQuery && searchParams.searchQuery !== "popular") {
+      searchUrl += `&with_keywords=${encodeURIComponent(searchParams.searchQuery)}`;
+    }
+    if (searchParams.year) {
+      searchUrl += `&year=${searchParams.year}`;
+    }
+    if (searchParams.genre) {
+      searchUrl += `&with_genres=${searchParams.genre}`;
+    }
+    
     console.log('TMDB URL:', searchUrl);
     
     const searchResponse = await fetch(searchUrl, {
@@ -70,6 +83,15 @@ serve(async (req) => {
     
     if (!searchData.results || !Array.isArray(searchData.results)) {
       throw new Error('Invalid TMDB API response');
+    }
+
+    // If no results found, fetch popular movies as fallback
+    if (searchData.results.length === 0) {
+      console.log('No results found, fetching popular movies as fallback...');
+      const fallbackUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US`;
+      const fallbackResponse = await fetch(fallbackUrl);
+      const fallbackData = await fallbackResponse.json();
+      searchData.results = fallbackData.results;
     }
 
     // Transform and limit the results
@@ -116,12 +138,38 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in search-movies function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
-    );
+    
+    // In case of any error, return popular movies as fallback
+    try {
+      console.log('Error occurred, fetching popular movies as fallback...');
+      const fallbackUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_API_KEY}&language=en-US`;
+      const fallbackResponse = await fetch(fallbackUrl);
+      const fallbackData = await fallbackResponse.json();
+      
+      const movies = fallbackData.results.slice(0, 6).map((movie: any) => ({
+        title: movie.title,
+        year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+        poster: movie.poster_path 
+          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+          : 'https://via.placeholder.com/500x750?text=No+Poster',
+        synopsis: movie.overview || 'No synopsis available',
+        streaming: []
+      }));
+
+      return new Response(
+        JSON.stringify({ movies }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    } catch (fallbackError) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to get movie recommendations' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
   }
 });
