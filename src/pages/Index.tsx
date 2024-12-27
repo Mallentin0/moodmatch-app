@@ -137,7 +137,7 @@ const Index = () => {
     <div className="flex flex-col min-h-screen bg-background">
       <Header onSignInClick={handleSignIn} />
 
-      <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
+      <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full pb-24">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <div className="flex justify-center w-full mb-6">
             <TabsList className="grid w-full max-w-md grid-cols-3 bg-secondary">
@@ -194,7 +194,9 @@ const Index = () => {
         </Tabs>
       </main>
 
-      <Footer />
+      <div className="mt-auto">
+        <Footer />
+      </div>
 
       <AuthDialog 
         open={showAuthDialog} 
