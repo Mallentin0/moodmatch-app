@@ -17,7 +17,7 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
-  type?: 'movie';
+  type?: 'movie' | 'show';
 }
 
 const REFINEMENT_OPTIONS = {
@@ -81,6 +81,7 @@ const Index = () => {
         return;
       }
 
+      // Filter out results with Hentai genre before sorting
       const filteredResults = data.movies.filter(movie => 
         !movie.genre?.some(g => g.toLowerCase() === 'hentai')
       );

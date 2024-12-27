@@ -9,10 +9,9 @@ export interface MovieResult {
   genre?: string[];
   tone?: string[];
   theme?: string[];
-  type?: 'movie';
 }
 
-export async function fetchMovieDetails(movieId: number, type: 'movie'): Promise<any> {
+export async function fetchMovieDetails(movieId: number): Promise<any> {
   const response = await fetch(
     `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`,
     {
@@ -30,7 +29,7 @@ export async function searchMovies(searchUrl: string): Promise<any> {
   return response.json();
 }
 
-export function buildSearchUrl(params: any, page: number, type: 'movie'): string {
+export function buildSearchUrl(params: any, page: number): string {
   const sortOptions = ['popularity.desc', 'vote_average.desc', 'revenue.desc'];
   const randomSort = sortOptions[Math.floor(Math.random() * sortOptions.length)];
   
