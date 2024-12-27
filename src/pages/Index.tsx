@@ -44,13 +44,19 @@ const Index = () => {
     const finalPrompt = isRefinement ? `${lastPrompt} ${searchPrompt}` : searchPrompt;
     
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'search-movies',
-        { body: { prompt: finalPrompt } }
-      );
+      const response = await fetch('/api/search-movies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: finalPrompt }),
+      });
       
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
 
+      const data = await response.json();
       if (!data?.movies || !Array.isArray(data.movies)) {
         throw new Error('Invalid response format');
       }
