@@ -51,7 +51,7 @@ serve(async (req) => {
       .sort(() => Math.random() - 0.5)
       .slice(0, 6);
 
-    // Transform the results
+    // Transform the results with detailed information
     const movies: MovieResult[] = await Promise.all(
       shuffledResults.map(async (movie: any) => {
         console.log('Processing movie:', movie.title);
@@ -68,15 +68,48 @@ serve(async (req) => {
               )
             )
           : providers;
+
+        // Extract genres
+        const genres = details.genres?.map((g: any) => g.name) || [];
         
+        // Extract production companies
+        const production = details.production_companies?.map((c: any) => c.name) || [];
+        
+        // Extract cast members (first 5)
+        const cast = details.credits?.cast?.slice(0, 5).map((actor: any) => actor.name) || [];
+        
+        // Extract director
+        const director = details.credits?.crew?.find((c: any) => c.job === 'Director')?.name;
+        
+        // Extract runtime in hours and minutes
+        const runtime = details.runtime ? {
+          hours: Math.floor(details.runtime / 60),
+          minutes: details.runtime % 60
+        } : null;
+
         return {
           title: movie.title,
           year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
           poster: movie.poster_path 
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
             : 'https://via.placeholder.com/500x750?text=No+Poster',
+          backdrop: movie.backdrop_path
+            ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+            : null,
           synopsis: movie.overview || 'No synopsis available',
-          streaming: streamingProviders.map((provider: any) => provider.provider_name)
+          streaming: streamingProviders.map((provider: any) => provider.provider_name),
+          genre: genres,
+          tone: searchParams.tone || [],
+          theme: searchParams.theme || [],
+          rating: details.vote_average?.toFixed(1) || 'N/A',
+          runtime,
+          director,
+          cast,
+          production,
+          tagline: details.tagline || null,
+          language: details.original_language?.toUpperCase() || 'N/A',
+          budget: details.budget ? `$${(details.budget / 1000000).toFixed(1)}M` : 'N/A',
+          revenue: details.revenue ? `$${(details.revenue / 1000000).toFixed(1)}M` : 'N/A'
         };
       })
     );

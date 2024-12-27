@@ -4,13 +4,26 @@ export interface MovieResult {
   title: string;
   year: string;
   poster: string;
+  backdrop?: string;
   synopsis: string;
   streaming: string[];
+  genre?: string[];
+  tone?: string[];
+  theme?: string[];
+  rating?: string;
+  runtime?: { hours: number; minutes: number };
+  director?: string;
+  cast?: string[];
+  production?: string[];
+  tagline?: string;
+  language?: string;
+  budget?: string;
+  revenue?: string;
 }
 
 export async function fetchMovieDetails(movieId: number): Promise<any> {
   const response = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`,
+    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers,credits`,
     {
       method: 'GET',
       headers: {
