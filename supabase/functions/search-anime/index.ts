@@ -1,5 +1,5 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { analyzePrompt } from "../search-movies/claude.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,36 +15,16 @@ serve(async (req) => {
     const { prompt } = await req.json();
     console.log('Received anime search prompt:', prompt);
 
-    // Check for inappropriate content in the prompt
-    const inappropriateTerms = ['hentai', 'ecchi', 'erotica', 'nsfw'];
-    if (inappropriateTerms.some(term => prompt.toLowerCase().includes(term))) {
-      return new Response(
-        JSON.stringify({ 
-          movies: [],
-          message: "Please use appropriate search terms" 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    // Use Claude to analyze the prompt
+    const searchParams = await analyzePrompt(prompt);
+    console.log('Parsed search parameters:', searchParams);
 
-    // Search anime using Jikan API with safe ratings
-    const searchUrl = new URL('https://api.jikan.moe/v4/anime');
-    searchUrl.searchParams.append('q', prompt);
-    searchUrl.searchParams.append('limit', '6');
-    searchUrl.searchParams.append('sfw', 'true');
-    searchUrl.searchParams.append('rating', 'g,pg,pg13'); // Only family-friendly content
-
-    console.log('Jikan API URL:', searchUrl.toString());
+    // Search anime using Jikan API
+    const searchUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchParams.keywords.join(' '))}&limit=6`;
+    console.log('Jikan API URL:', searchUrl);
 
     const response = await fetch(searchUrl);
-    if (!response.ok) {
-      throw new Error(`Jikan API error: ${response.status}`);
-    }
-
     const data = await response.json();
-    console.log('Received results from Jikan:', data.data.length);
 
     // Transform the results to match our existing movie format
     const animeResults = data.data.map((anime: any) => ({
@@ -59,7 +38,7 @@ serve(async (req) => {
       theme: anime.themes?.map((t: any) => t.name) || [],
       ratings: [{
         source: 'MyAnimeList',
-        value: `${anime.score || 'N/A'}/10`
+        value: `${anime.score}/10`
       }],
       runtime: `${anime.episodes || '?'} episodes`,
       director: anime.producers?.[0]?.name || 'Unknown',
@@ -75,10 +54,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in search-anime function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Failed to get anime recommendations',
-        details: error.message 
-      }),
+      JSON.stringify({ error: 'Failed to get anime recommendations' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
