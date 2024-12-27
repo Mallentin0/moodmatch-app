@@ -1,9 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { analyzePrompt } from "../search-movies/claude.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 
 const TMDB_API_KEY = Deno.env.get('TMDB_API_KEY');
 const OMDB_API_KEY = Deno.env.get('OMDB_API_KEY');
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,100 +21,97 @@ serve(async (req) => {
     const { prompt } = await req.json();
     console.log('Received TV show search prompt:', prompt);
 
-    const searchParams = await analyzePrompt(prompt);
-    console.log('Claude analysis:', searchParams);
-
-    const searchQuery = [
-      searchParams.genre,
-      ...(searchParams.keywords || []),
-      searchParams.mood,
-      'tv series'
-    ].filter(Boolean).join(' ');
-
-    console.log('Search query:', searchQuery);
+    const supabase = createClient(
+      SUPABASE_URL!,
+      SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Search TV shows using TMDB API
     const tmdbResponse = await fetch(
-      `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchQuery)}&page=1&include_adult=false`
+      `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(prompt)}&page=1&include_adult=false`
     );
     const tmdbData = await tmdbResponse.json();
     console.log('TMDB API response:', tmdbData);
     
     // Process TMDB results
-    const tmdbShows = await Promise.all((tmdbData.results || []).slice(0, 3).map(async (show: any) => {
+    const tmdbShows = await Promise.all((tmdbData.results || []).slice(0, 6).map(async (show: any) => {
       try {
         // Get additional details from TMDB TV endpoint
         const detailsResponse = await fetch(
-          `https://api.themoviedb.org/3/tv/${show.id}?api_key=${TMDB_API_KEY}`
+          `https://api.themoviedb.org/3/tv/${show.id}?api_key=${TMDB_API_KEY}&append_to_response=watch/providers`
         );
         const details = await detailsResponse.json();
 
-        return {
+        // Get OMDB details for additional metadata
+        const omdbResponse = await fetch(
+          `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(show.name)}&type=series`
+        );
+        const omdbData = await omdbResponse.json();
+
+        const showData = {
+          tmdb_id: show.id,
+          imdb_id: omdbData.imdbID,
           title: show.name,
-          year: show.first_air_date?.split('-')[0] || 'N/A',
-          poster: show.poster_path 
+          original_title: show.original_name,
+          overview: show.overview,
+          first_air_date: show.first_air_date,
+          poster_path: show.poster_path 
             ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-            : 'https://via.placeholder.com/500x750?text=No+Poster',
-          synopsis: show.overview || 'No synopsis available',
-          streaming: [], // Could be enhanced with a streaming availability API
-          genre: details.genres?.map((g: any) => g.name) || [],
-          tone: searchParams.mood ? [searchParams.mood] : [],
-          theme: details.genres?.map((g: any) => g.name) || [],
+            : null,
+          genres: details.genres?.map((g: any) => g.name) || [],
+          themes: omdbData.Genre ? omdbData.Genre.split(', ') : [],
+          tones: omdbData.Genre ? omdbData.Genre.split(', ') : [],
+          streaming_platforms: details.watch_providers?.results?.US?.flatrate?.map((p: any) => p.provider_name) || [],
+          popularity: show.popularity,
+          vote_average: show.vote_average,
+          vote_count: show.vote_count
+        };
+
+        // Store or update the show in our database
+        const { data: existingShow, error: fetchError } = await supabase
+          .from('tv_shows')
+          .select()
+          .eq('tmdb_id', showData.tmdb_id)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Error fetching existing show:', fetchError);
+        }
+
+        if (!existingShow) {
+          const { error: insertError } = await supabase
+            .from('tv_shows')
+            .insert([showData]);
+
+          if (insertError) {
+            console.error('Error inserting show:', insertError);
+          }
+        } else {
+          const { error: updateError } = await supabase
+            .from('tv_shows')
+            .update(showData)
+            .eq('tmdb_id', showData.tmdb_id);
+
+          if (updateError) {
+            console.error('Error updating show:', updateError);
+          }
+        }
+
+        return {
+          ...showData,
           type: 'show' as const
         };
       } catch (error) {
-        console.error('Error processing TMDB show:', error);
+        console.error('Error processing show:', error);
         return null;
       }
     }));
 
-    // Search TV shows using OMDB API
-    const omdbResponse = await fetch(
-      `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${encodeURIComponent(searchQuery)}&type=series`
-    );
-    const omdbData = await omdbResponse.json();
-    console.log('OMDB API response:', omdbData);
-    
-    // Process OMDB results
-    const omdbShows = await Promise.all(
-      (omdbData.Search || []).slice(0, 3).map(async (show: any) => {
-        try {
-          // Get full details for each show
-          const detailsResponse = await fetch(
-            `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series&plot=full`
-          );
-          const details = await detailsResponse.json();
+    // Filter out null results and limit to 6 shows
+    const validShows = tmdbShows.filter((show): show is NonNullable<typeof show> => show !== null);
+    const finalResults = validShows.slice(0, 6);
 
-          return {
-            title: show.Title,
-            year: show.Year.split('–')[0],
-            poster: show.Poster !== 'N/A' ? show.Poster : 'https://via.placeholder.com/500x750?text=No+Poster',
-            synopsis: details.Plot || 'No synopsis available',
-            streaming: [],
-            genre: details.Genre ? details.Genre.split(', ') : [],
-            tone: searchParams.mood ? [searchParams.mood] : [],
-            theme: details.Genre ? details.Genre.split(', ') : [],
-            type: 'show' as const
-          };
-        } catch (error) {
-          console.error('Error processing OMDB show:', error);
-          return null;
-        }
-      })
-    );
-
-    // Combine and deduplicate results, filtering out null values
-    const allShows = [...tmdbShows, ...omdbShows]
-      .filter((show): show is NonNullable<typeof show> => show !== null);
-    
-    const uniqueShows = Array.from(
-      new Map(allShows.map(show => [show.title, show])).values()
-    );
-
-    // Limit to 6 results
-    const finalResults = uniqueShows.slice(0, 6);
-
-    console.log(`Returning ${finalResults.length} TV show results:`, finalResults);
+    console.log(`Returning ${finalResults.length} TV show results`);
     
     return new Response(
       JSON.stringify({ movies: finalResults }),
@@ -129,26 +128,3 @@ serve(async (req) => {
     );
   }
 });
-
-// Helper function to map TMDB genre IDs to names
-function getGenreName(id: number): string {
-  const genres: Record<number, string> = {
-    10759: "Action & Adventure",
-    16: "Animation",
-    35: "Comedy",
-    80: "Crime",
-    99: "Documentary",
-    18: "Drama",
-    10751: "Family",
-    10762: "Kids",
-    9648: "Mystery",
-    10763: "News",
-    10764: "Reality",
-    10765: "Sci-Fi & Fantasy",
-    10766: "Soap",
-    10767: "Talk",
-    10768: "War & Politics",
-    37: "Western"
-  };
-  return genres[id] || "Unknown";
-}

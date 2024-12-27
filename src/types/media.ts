@@ -10,4 +10,11 @@ export interface Movie {
   genre?: string[];
   tone?: string[];
   type?: MediaType;
+  tmdb_id?: number;
+  imdb_id?: string;
+  original_title?: string;
+  first_air_date?: string;
+  popularity?: number;
+  vote_average?: number;
+  vote_count?: number;
 }
