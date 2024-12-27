@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { MovieResults } from "@/components/MovieResults";
-import { supabase } from "@/integrations/supabase/client";
 import { AuthDialog } from "@/components/AuthDialog";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchSection } from "@/components/SearchSection";
 import { RefinementOptions } from "@/components/RefinementOptions";
@@ -51,13 +50,19 @@ const Index = () => {
     const finalPrompt = isRefinement ? `${lastPrompt} ${searchPrompt}` : searchPrompt;
     
     try {
-      const { data, error } = await supabase.functions.invoke(
-        'search-movies',
-        { body: { prompt: finalPrompt } }
-      );
+      const response = await fetch('/api/search-movies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: finalPrompt }),
+      });
       
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
 
+      const data = await response.json();
       if (!data?.movies || !Array.isArray(data.movies)) {
         throw new Error('Invalid response format');
       }
@@ -109,22 +114,6 @@ const Index = () => {
         break;
     }
     await handleSearch(feedbackPrompt, true);
-  };
-
-  const handleSave = async (movie: Movie) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      setShowAuthDialog(true);
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to save recommendations",
-      });
-      return;
-    }
-    toast({
-      title: "Coming soon",
-      description: "Saving recommendations will be available soon!",
-    });
   };
 
   const handleTabChange = (value: string) => {
@@ -179,8 +168,27 @@ const Index = () => {
             <MovieResults 
               isLoading={isLoading}
               results={results}
-              onSaveMovie={handleSave}
               onFeedback={handleFeedback}
+              onSaveMovie={() => {
+                toast({
+                  title: "Feature Coming Soon!",
+                  description: (
+                    <div className="flex flex-col gap-2">
+                      <p>Save functionality is coming soon!</p>
+                      <a 
+                        href="https://ko-fi.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-primary hover:underline"
+                      >
+                        <Heart className="w-4 h-4" />
+                        Support this project
+                      </a>
+                    </div>
+                  ),
+                  duration: 5000,
+                });
+              }}
             />
           </TabsContent>
 
