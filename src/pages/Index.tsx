@@ -10,7 +10,6 @@ import { TVShowsTab } from "@/components/TVShowsTab";
 import { AnimeTab } from "@/components/AnimeTab";
 import { Footer } from "@/components/Footer";
 import { Heart } from "lucide-react";
-import { KofiButton } from "@/components/KofiButton";
 
 interface Movie {
   title: string;
@@ -204,16 +203,16 @@ const Index = () => {
         </Tabs>
       </main>
 
-      <div id="ko-fi-container"></div>
+      <div id="ko-fi-container" className="mb-16"></div>
       <script dangerouslySetInnerHTML={{
         __html: `
           (function() {
             var script = document.createElement('script');
             script.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
             script.onload = function() {
-              window.kofiWidgetOverlay.draw('R6R4181VNL', {
+              window.kofiWidgetOverlay.draw('moodwatch', {
                 'type': 'floating-chat',
-                'floating-chat.donateButton.text': 'Donate',
+                'floating-chat.donateButton.text': 'Support me',
                 'floating-chat.donateButton.background-color': '#ff5f5f',
                 'floating-chat.donateButton.text-color': '#fff'
               });
