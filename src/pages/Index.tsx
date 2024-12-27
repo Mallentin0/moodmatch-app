@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SearchPrompt } from "@/components/SearchPrompt";
-import { MovieCard } from "@/components/MovieCard";
+import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,7 +101,7 @@ const Index = () => {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
             >
               {results.map((movie) => (
-                <MovieCard 
+                <EnhancedMovieCard 
                   key={movie.title} 
                   {...movie} 
                   onSave={() => handleSave(movie)}
