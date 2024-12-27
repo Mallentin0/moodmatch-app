@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { MovieResults } from "@/components/MovieResults";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthDialog } from "@/components/AuthDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchSection } from "@/components/SearchSection";
@@ -33,11 +35,16 @@ const REFINEMENT_OPTIONS = {
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<'movie' | 'anime' | 'tvshow'>('movie');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<Movie[]>([]);
   const [prompt, setPrompt] = useState("");
   const [lastPrompt, setLastPrompt] = useState("");
   const { toast } = useToast();
+
+  const handleSignIn = () => {
+    setShowAuthDialog(true);
+  };
 
   const handleSearch = async (searchPrompt: string, isRefinement = false) => {
     setIsLoading(true);
@@ -104,6 +111,22 @@ const Index = () => {
     await handleSearch(feedbackPrompt, true);
   };
 
+  const handleSave = async (movie: Movie) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setShowAuthDialog(true);
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to save recommendations",
+      });
+      return;
+    }
+    toast({
+      title: "Coming soon",
+      description: "Saving recommendations will be available soon!",
+    });
+  };
+
   const handleTabChange = (value: string) => {
     setActiveTab(value as 'movie' | 'anime' | 'tvshow');
     setResults([]);
@@ -112,7 +135,7 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header onSignInClick={handleSignIn} />
 
       <main className="flex-grow flex flex-col px-4 sm:px-6 lg:px-8 space-y-6 overflow-hidden max-w-7xl mx-auto w-full">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -156,6 +179,7 @@ const Index = () => {
             <MovieResults 
               isLoading={isLoading}
               results={results}
+              onSaveMovie={handleSave}
               onFeedback={handleFeedback}
             />
           </TabsContent>
@@ -171,6 +195,11 @@ const Index = () => {
       </main>
 
       <Footer />
+
+      <AuthDialog 
+        open={showAuthDialog} 
+        onOpenChange={setShowAuthDialog} 
+      />
     </div>
   );
 };
