@@ -19,26 +19,15 @@ serve(async (req) => {
     const searchParams = await analyzePrompt(prompt);
     console.log('Parsed search parameters:', searchParams);
 
-    // Add rating filter to exclude adult content
-    const searchUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchParams.keywords.join(' '))}&limit=6&rating=g,pg,pg13`;
+    // Search anime using Jikan API
+    const searchUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchParams.keywords.join(' '))}&limit=6`;
     console.log('Jikan API URL:', searchUrl);
 
     const response = await fetch(searchUrl);
     const data = await response.json();
 
-    // Additional safety filter to exclude any anime with adult themes or ratings
-    const filteredAnime = data.data.filter((anime: any) => {
-      const rating = (anime.rating || '').toLowerCase();
-      return !rating.includes('rx') && // Exclude explicit content
-             !rating.includes('hentai') && // Exclude adult anime
-             !(anime.genres || []).some((g: any) => 
-               g.name.toLowerCase().includes('hentai') || 
-               g.name.toLowerCase().includes('erotica')
-             );
-    });
-
     // Transform the results to match our existing movie format
-    const animeResults = filteredAnime.map((anime: any) => ({
+    const animeResults = data.data.map((anime: any) => ({
       title: anime.title,
       year: anime.year?.toString() || 'N/A',
       poster: anime.images.jpg.large_image_url,
