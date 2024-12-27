@@ -43,12 +43,12 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           error: "No results found",
-          message: "Could you be more descriptive? Try adding details like genre, time period, or mood. For example: 'funny romantic movies from the 90s' or 'dark sci-fi shows on Netflix'",
+          message: "Could you add more details to your search? Try including:\n- Genre (e.g., 'romantic comedy', 'psychological thriller')\n- Time period (e.g., '90s', 'recent')\n- Mood (e.g., 'heartwarming', 'suspenseful')\n- Platform (e.g., 'on Netflix', 'on Disney+')\n\nFor example: 'A heartwarming romantic comedy from the 90s on Netflix' or 'Dark psychological thriller with plot twists'",
           movies: []
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 // Using 200 to handle this gracefully on the frontend
+          status: 200
         }
       );
     }
@@ -98,7 +98,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Failed to get movie recommendations',
-        message: 'Please try being more specific in your search. For example: "action movies from 2020" or "romantic comedies on Netflix"',
+        message: 'Try being more specific in your search by including genre, time period, mood, and streaming platform. For example: "Suspenseful crime drama from 2020 on Netflix" or "Feel-good animated movies on Disney+"',
         movies: []
       }),
       {

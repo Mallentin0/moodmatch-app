@@ -35,7 +35,7 @@ export const SearchPrompt = ({ onSearch, isLoading = false }: SearchPromptProps)
         </div>
       </div>
       <p className="text-sm text-gray-500 mt-2 text-center">
-        Try "A funny romantic comedy from the 90s" or "Dark sci-fi thriller on Netflix"
+        Try "A heartwarming romantic comedy from the 90s on Netflix" or "Dark psychological thriller with plot twists on Netflix"
       </p>
     </form>
   );
