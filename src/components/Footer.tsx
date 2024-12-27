@@ -1,4 +1,4 @@
-import { Github, Twitter, ExternalLink } from "lucide-react";
+import { Github, Twitter, ExternalLink, Instagram } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Footer() {
@@ -42,6 +42,17 @@ export function Footer() {
             >
               <Twitter className="h-4 w-4" />
               <span className="sr-only">Twitter</span>
+            </a>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <a
+              href="https://www.instagram.com/mallentino/?hl=en"
+              target="_blank"
+              rel="noreferrer"
+              className="opacity-75 transition-opacity hover:opacity-100"
+            >
+              <Instagram className="h-4 w-4" />
+              <span className="sr-only">Instagram</span>
             </a>
           </Button>
           <Button variant="ghost" size="icon" asChild>
