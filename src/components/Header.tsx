@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 
-export function Header() {
+interface HeaderProps {
+  onSignInClick?: () => void;
+}
+
+export function Header({ onSignInClick }: HeaderProps) {
   return (
     <>
       <motion.div
