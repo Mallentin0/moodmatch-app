@@ -21,7 +21,7 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
-  type?: 'movie' | 'anime';
+  type?: 'movie' | 'show';
 }
 
 const REFINEMENT_OPTIONS = {
@@ -113,6 +113,22 @@ const Index = () => {
 
   const handleRefinement = (refinementPrompt: string) => {
     handleSearch(refinementPrompt, true);
+  };
+
+  const handleFeedback = (type: 'like' | 'dislike' | 'info', title: string) => {
+    let feedbackPrompt = "";
+    switch (type) {
+      case 'like':
+        feedbackPrompt = `more like ${title}`;
+        break;
+      case 'dislike':
+        feedbackPrompt = `different from ${title}`;
+        break;
+      case 'info':
+        feedbackPrompt = `similar to ${title} but with different themes`;
+        break;
+    }
+    handleSearch(feedbackPrompt, true);
   };
 
   const handleSave = async (movie: Movie) => {
@@ -239,6 +255,7 @@ const Index = () => {
           isLoading={isLoading}
           results={results}
           onSaveMovie={handleSave}
+          onFeedback={handleFeedback}
         />
       </main>
 

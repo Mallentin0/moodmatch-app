@@ -13,15 +13,17 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
+  type?: 'movie' | 'show';
 }
 
 interface MovieResultsProps {
   isLoading: boolean;
   results: Movie[];
   onSaveMovie: (movie: Movie) => void;
+  onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
 
-export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsProps) {
+export function MovieResults({ isLoading, results, onSaveMovie, onFeedback }: MovieResultsProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -49,6 +51,7 @@ export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsPr
                 {...movie} 
                 onSave={() => onSaveMovie(movie)}
                 onClick={() => handleMovieClick(movie)}
+                onFeedback={onFeedback}
               />
             ))}
           </motion.div>

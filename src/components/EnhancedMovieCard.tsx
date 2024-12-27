@@ -17,6 +17,7 @@ interface MovieProps {
   type?: 'movie' | 'show';
   onSave?: () => void;
   onClick?: () => void;
+  onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
 }
 
 export function EnhancedMovieCard({ 
@@ -30,9 +31,17 @@ export function EnhancedMovieCard({
   theme = [],
   type = 'movie',
   onSave,
-  onClick
+  onClick,
+  onFeedback
 }: MovieProps) {
   const decade = year ? `${year.slice(0, 3)}0s` : 'Unknown';
+
+  const handleFeedback = (feedbackType: 'like' | 'dislike' | 'info', e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onFeedback) {
+      onFeedback(feedbackType, title);
+    }
+  };
 
   return (
     <Card 
@@ -80,14 +89,29 @@ export function EnhancedMovieCard({
             )}
           </div>
           
-          <div className="flex space-x-2 ml-auto" onClick={(e) => e.stopPropagation()}>
-            <Button size="sm" variant="ghost" className="text-primary hover:text-primary hover:bg-primary/20">
+          <div className="flex space-x-2 ml-auto">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-primary hover:text-primary hover:bg-primary/20"
+              onClick={(e) => handleFeedback('like', e)}
+            >
               <ThumbsUp className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/20">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-destructive hover:text-destructive hover:bg-destructive/20"
+              onClick={(e) => handleFeedback('dislike', e)}
+            >
               <ThumbsDown className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-muted">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-muted-foreground hover:text-foreground hover:bg-muted"
+              onClick={(e) => handleFeedback('info', e)}
+            >
               <Info className="h-4 w-4" />
             </Button>
           </div>
