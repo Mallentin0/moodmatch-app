@@ -2,8 +2,6 @@ import { Github, Twitter, ExternalLink, Instagram, Mail } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer className="w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex flex-col items-center justify-center gap-4 py-8 md:py-4">
@@ -18,7 +16,7 @@ export function Footer() {
             >
               Mallentino
             </a>
-            . © {currentYear} All rights reserved.
+            . © 2025 All rights reserved.
           </p>
           <a
             href="mailto:info@mallentino.com"
