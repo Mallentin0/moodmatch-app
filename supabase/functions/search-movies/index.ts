@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { analyzePrompt } from "./claude.ts";
-import { fetchMovieDetails, searchMovies, buildSearchUrl, type MovieResult } from "./tmdb.ts";
+import { fetchMovieDetails, searchMovies, buildSearchUrl, searchMoviesByTitle, type MovieResult } from "./tmdb.ts";
 import { enrichWithOMDbData } from "./omdb.ts";
 
 const corsHeaders = {
@@ -18,32 +18,32 @@ serve(async (req) => {
     const { prompt } = await req.json();
     console.log('Received prompt:', prompt);
 
-    // Analyze prompt using Claude
-    console.log('Calling Claude API...');
-    const searchParams = await analyzePrompt(prompt);
-    console.log('Parsed search parameters:', searchParams);
+    let allResults = [];
+    const words = prompt.trim().split(/\s+/);
 
-    // Extract streaming platforms from the prompt
-    const streamingPlatforms = [
-      'Netflix', 'Hulu', 'Amazon Prime Video', 'Disney+', 
-      'HBO Max', 'Apple TV+', 'Paramount+', 'Peacock', 'Crunchyroll'
-    ].filter(platform => 
-      prompt.toLowerCase().includes(platform.toLowerCase())
-    );
+    // If it's a single word or appears to be a movie title (more than 3 words)
+    if (words.length === 1 || words.length > 3) {
+      console.log('Searching by title/keyword:', prompt);
+      const titleResults = await searchMoviesByTitle(prompt);
+      allResults = titleResults;
+    } else {
+      // Use Claude for more complex prompts
+      console.log('Using Claude for analysis of complex prompt');
+      const searchParams = await analyzePrompt(prompt);
+      console.log('Parsed search parameters:', searchParams);
 
-    // Get multiple random pages to increase variety
-    const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
-    const allResults = [];
-    
-    // Fetch movies from multiple pages
-    for (const page of pages) {
-      const searchUrl = buildSearchUrl(searchParams, page);
-      console.log(`TMDB URL for page ${page}:`, searchUrl);
+      // Get multiple random pages to increase variety
+      const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
       
-      const searchData = await searchMovies(searchUrl);
-      
-      if (searchData.results && Array.isArray(searchData.results)) {
-        allResults.push(...searchData.results);
+      for (const page of pages) {
+        const searchUrl = buildSearchUrl(searchParams, page);
+        console.log(`TMDB URL for page ${page}:`, searchUrl);
+        
+        const searchData = await searchMovies(searchUrl);
+        
+        if (searchData.results && Array.isArray(searchData.results)) {
+          allResults.push(...searchData.results);
+        }
       }
     }
 
@@ -55,34 +55,17 @@ serve(async (req) => {
       allResults.push(...fallbackData.results);
     }
 
-    // Shuffle and take 6 random results
+    // Shuffle and take up to 6 random results
     const shuffledResults = allResults
       .sort(() => Math.random() - 0.5)
-      .slice(0, 12);
+      .slice(0, 6);
 
-    // Transform and filter the results based on streaming platforms
+    // Transform the results
     const movies: MovieResult[] = await Promise.all(
       shuffledResults.map(async (movie: any) => {
         console.log('Processing movie:', movie.title);
         const details = await fetchMovieDetails(movie.id);
         
-        // Extract streaming providers (US region)
-        const providers = details['watch/providers']?.results?.US?.flatrate || [];
-        const movieStreamingPlatforms = providers.map((p: any) => p.provider_name);
-
-        // If streaming platforms were specified in the prompt, check if the movie is available on any of them
-        if (streamingPlatforms.length > 0) {
-          const hasRequestedPlatform = movieStreamingPlatforms.some(platform =>
-            streamingPlatforms.some(requested => 
-              platform.toLowerCase().includes(requested.toLowerCase())
-            )
-          );
-          
-          if (!hasRequestedPlatform) {
-            return null;
-          }
-        }
-
         const baseMovie = {
           title: movie.title,
           year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
@@ -90,10 +73,8 @@ serve(async (req) => {
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
             : 'https://via.placeholder.com/500x750?text=No+Poster',
           synopsis: movie.overview || 'No synopsis available',
-          streaming: movieStreamingPlatforms,
           genre: details.genres?.map((g: any) => g.name) || [],
-          tone: searchParams.tone || [],
-          theme: searchParams.theme || []
+          type: 'movie'
         };
 
         // Enrich with OMDb data
@@ -101,13 +82,10 @@ serve(async (req) => {
       })
     );
 
-    // Filter out null results and take up to 6 movies
-    const filteredMovies = movies.filter(movie => movie !== null).slice(0, 6);
-
-    console.log('Final movies response:', filteredMovies);
+    console.log('Final movies response:', movies);
 
     return new Response(
-      JSON.stringify({ movies: filteredMovies }),
+      JSON.stringify({ movies }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -130,7 +108,7 @@ serve(async (req) => {
                 ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                 : 'https://via.placeholder.com/500x750?text=No+Poster',
               synopsis: movie.overview || 'No synopsis available',
-              streaming: []
+              type: 'movie'
             };
             return await enrichWithOMDbData(baseMovie);
           })

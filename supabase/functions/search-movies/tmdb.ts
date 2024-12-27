@@ -9,6 +9,7 @@ export interface MovieResult {
   genre?: string[];
   tone?: string[];
   theme?: string[];
+  type?: 'movie';
 }
 
 export async function fetchMovieDetails(movieId: number): Promise<any> {
@@ -27,6 +28,20 @@ export async function fetchMovieDetails(movieId: number): Promise<any> {
 export async function searchMovies(searchUrl: string): Promise<any> {
   const response = await fetch(searchUrl);
   return response.json();
+}
+
+export async function searchMoviesByTitle(query: string): Promise<any[]> {
+  const response = await fetch(
+    `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  const data = await response.json();
+  return data.results || [];
 }
 
 export function buildSearchUrl(params: any, page: number): string {
