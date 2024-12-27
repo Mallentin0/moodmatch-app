@@ -71,7 +71,7 @@ export function SearchSection({
       <CardContent className="relative px-4 sm:px-6">
         <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
           <Input
-            placeholder={getPlaceholder()}
+            placeholder="e.g., 'give me some free go lucky movies'"
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
             className="h-12 bg-background/50 border-primary/20 focus:border-primary focus:ring-primary backdrop-blur-sm text-sm sm:text-base flex-1"
