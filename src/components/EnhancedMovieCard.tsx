@@ -14,6 +14,7 @@ interface MovieProps {
   tone?: string[];
   theme?: string[];
   onSave?: () => void;
+  onClick?: () => void;
 }
 
 export function EnhancedMovieCard({ 
@@ -25,12 +26,16 @@ export function EnhancedMovieCard({
   genre = [],
   tone = [],
   theme = [],
-  onSave 
+  onSave,
+  onClick
 }: MovieProps) {
   const decade = year ? `${year.slice(0, 3)}0s` : 'Unknown';
 
   return (
-    <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-primary/20 bg-card border-primary/20">
+    <Card 
+      className="overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-primary/20 bg-card border-primary/20 cursor-pointer"
+      onClick={onClick}
+    >
       <div className="relative">
         <MoviePoster poster={poster} title={title} onSave={onSave} />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
@@ -60,7 +65,7 @@ export function EnhancedMovieCard({
             </div>
           )}
           
-          <div className="flex space-x-2 ml-auto">
+          <div className="flex space-x-2 ml-auto" onClick={(e) => e.stopPropagation()}>
             <Button size="sm" variant="ghost" className="text-primary hover:text-primary hover:bg-primary/20">
               <ThumbsUp className="h-4 w-4" />
             </Button>

@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
+import { MovieDialog } from "@/components/MovieDialog";
+import { useState } from "react";
 
 interface Movie {
   title: string;
@@ -20,27 +22,44 @@ interface MovieResultsProps {
 }
 
 export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsProps) {
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleMovieClick = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setDialogOpen(true);
+  };
+
   return (
-    <AnimatePresence mode="wait">
-      {isLoading ? (
-        <LoadingState key="loading" />
-      ) : results.length > 0 ? (
-        <motion.div
-          key="results"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
-        >
-          {results.map((movie, index) => (
-            <EnhancedMovieCard 
-              key={`${movie.title}-${index}`}
-              {...movie} 
-              onSave={() => onSaveMovie(movie)}
-            />
-          ))}
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <>
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <LoadingState key="loading" />
+        ) : results.length > 0 ? (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
+          >
+            {results.map((movie, index) => (
+              <EnhancedMovieCard 
+                key={`${movie.title}-${index}`}
+                {...movie} 
+                onSave={() => onSaveMovie(movie)}
+                onClick={() => handleMovieClick(movie)}
+              />
+            ))}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <MovieDialog
+        movie={selectedMovie}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
+    </>
   );
 }
