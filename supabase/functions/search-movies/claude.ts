@@ -13,11 +13,11 @@ export async function analyzePrompt(prompt: string): Promise<any> {
       max_tokens: 1000,
       messages: [{
         role: 'user',
-        content: `You are "MovieRecommender Claude," an AI assistant for moodwatch.ai.
+        content: `You are a media recommendation AI assistant. 
         
         Parse this prompt to identify key attributes and return ONLY a JSON object with these fields:
-        - genre (string): Primary genre (e.g., comedy, thriller)
-        - mood (string): Tone/mood (e.g., funny, dark)
+        - genre (string): Primary genre (e.g., comedy, action, drama)
+        - mood (string): Tone/mood (e.g., funny, dark, emotional)
         - year (number or null): Specific year or decade mentioned
         - keywords (array): Additional search terms
         - streaming (array): Mentioned streaming platforms
@@ -34,5 +34,17 @@ export async function analyzePrompt(prompt: string): Promise<any> {
     throw new Error('Invalid Claude API response');
   }
 
-  return JSON.parse(data.content[0].text);
+  try {
+    return JSON.parse(data.content[0].text);
+  } catch (error) {
+    console.error('Error parsing Claude response:', error);
+    console.log('Raw Claude response:', data.content[0].text);
+    return {
+      genre: '',
+      mood: '',
+      year: null,
+      keywords: [],
+      streaming: []
+    };
+  }
 }

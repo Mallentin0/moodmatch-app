@@ -17,10 +17,17 @@ serve(async (req) => {
 
     // Use Claude to analyze the prompt
     const searchParams = await analyzePrompt(prompt);
-    console.log('Parsed search parameters:', searchParams);
+    console.log('Claude analysis:', searchParams);
+
+    // Build search query based on Claude's analysis
+    const searchQuery = [
+      searchParams.genre,
+      ...searchParams.keywords,
+      searchParams.mood
+    ].filter(Boolean).join(' ');
 
     // Search anime using Jikan API
-    const searchUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchParams.keywords.join(' '))}&limit=6`;
+    const searchUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(searchQuery)}&limit=6`;
     console.log('Jikan API URL:', searchUrl);
 
     const response = await fetch(searchUrl);
