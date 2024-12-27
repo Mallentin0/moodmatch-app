@@ -12,7 +12,7 @@ interface AnimeResult {
   theme?: string[];
   genre?: string[];
   tone?: string[];
-  type?: 'anime';
+  type: 'anime';
 }
 
 export function AnimeTab() {
@@ -45,7 +45,7 @@ export function AnimeTab() {
         .sort(() => Math.random() - 0.5)
         .slice(0, 6);
 
-      const animeResults = randomResults.map((anime: any) => ({
+      const animeResults: AnimeResult[] = randomResults.map((anime: any) => ({
         title: anime.title,
         year: anime.year?.toString() || 'N/A',
         poster: anime.images.jpg.large_image_url,
@@ -54,7 +54,7 @@ export function AnimeTab() {
         genre: anime.genres?.map((g: any) => g.name) || [],
         tone: [anime.rating?.replace('_', ' ') || 'Not rated'],
         theme: anime.themes?.map((t: any) => t.name) || [],
-        type: 'anime'
+        type: 'anime' as const
       }));
 
       setResults(animeResults);
