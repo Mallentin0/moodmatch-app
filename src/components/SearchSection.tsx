@@ -34,11 +34,11 @@ export function SearchSection({
   const getDescription = () => {
     switch (activeTab) {
       case 'movie':
-        return "Tell us what you're in the mood for, and we'll find the perfect movie match.";
+        return "Tell us what kind of mood you're in, and we'll find the perfect movie match.";
       case 'anime':
-        return "Describe your ideal anime experience, and we'll curate the perfect selection.";
+        return "Share your current feelings, and we'll suggest the perfect anime.";
       case 'tvshow':
-        return "Share your interests, and we'll recommend your next binge-worthy series.";
+        return "Describe your emotional state, and we'll recommend the ideal TV series.";
       default:
         return "Let us help you find your next favorite.";
     }
@@ -47,13 +47,26 @@ export function SearchSection({
   const getPlaceholder = () => {
     switch (activeTab) {
       case 'movie':
-        return "e.g., 'An inspiring sci-fi adventure'";
+        return "e.g., 'I'm feeling happy and want something uplifting'";
       case 'anime':
-        return "e.g., 'A fantasy with strong characters'";
+        return "e.g., 'I need something exciting and action-packed'";
       case 'tvshow':
-        return "e.g., 'A gripping crime drama'";
+        return "e.g., 'I want to watch something relaxing and funny'";
       default:
         return "What would you like to watch?";
+    }
+  };
+
+  const getInputLabel = () => {
+    switch (activeTab) {
+      case 'movie':
+        return "How are you feeling? What kind of movie would match your mood?";
+      case 'anime':
+        return "What emotions or themes are you looking for in an anime?";
+      case 'tvshow':
+        return "What's your current mood? What kind of show would suit you?";
+      default:
+        return "Tell us what you'd like to watch";
     }
   };
 
@@ -69,31 +82,39 @@ export function SearchSection({
         </CardDescription>
       </CardHeader>
       <CardContent className="relative px-4 sm:px-6">
-        <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
-          <Input
-            placeholder="e.g., 'give me some free go lucky movies'"
-            value={prompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-            className="h-12 bg-background/50 border-primary/20 focus:border-primary focus:ring-primary backdrop-blur-sm text-sm sm:text-base flex-1"
-          />
-          <Button 
-            type="submit" 
-            size="lg"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 w-full sm:w-auto"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                Finding
-              </>
-            ) : (
-              <>
-                <Search className="mr-2 h-4 w-4" />
-                Search
-              </>
-            )}
-          </Button>
+        <form onSubmit={onSubmit} className="space-y-4 max-w-2xl mx-auto">
+          <div className="space-y-2">
+            <label htmlFor="search-input" className="text-sm font-medium text-foreground/80">
+              {getInputLabel()}
+            </label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input
+                id="search-input"
+                placeholder={getPlaceholder()}
+                value={prompt}
+                onChange={(e) => onPromptChange(e.target.value)}
+                className="h-12 bg-background/50 border-primary/20 focus:border-primary focus:ring-primary backdrop-blur-sm text-sm sm:text-base flex-1"
+              />
+              <Button 
+                type="submit" 
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 h-12 w-full sm:w-auto"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4 animate-spin" />
+                    Finding
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Search
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </form>
       </CardContent>
     </Card>
