@@ -35,14 +35,18 @@ const omdbFetch = async (params: Record<string, string>) => {
 const tmdbFetch = async (endpoint: string, options: RequestOptions = {}) => {
   const { tmdbKey } = await getApiKeys();
   const url = `${TMDB_BASE_URL}${endpoint}`;
-  const response = await fetch(url, {
+  
+  // Create a new options object with the correct authorization header
+  const tmdbOptions = {
     ...options,
     headers: {
       'Authorization': `Bearer ${tmdbKey}`,
-      'Content-Type': 'application/json',
+      'accept': 'application/json',
       ...options.headers,
     },
-  });
+  };
+
+  const response = await fetch(url, tmdbOptions);
 
   if (!response.ok) {
     const errorData = await response.json();
