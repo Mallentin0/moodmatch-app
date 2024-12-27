@@ -13,7 +13,7 @@ interface Movie {
   theme?: string[];
   genre?: string[];
   tone?: string[];
-  type?: 'movie' | 'show';
+  type?: 'movie' | 'show' | 'anime';
 }
 
 interface MovieResultsProps {

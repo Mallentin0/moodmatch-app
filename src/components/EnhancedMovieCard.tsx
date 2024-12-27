@@ -14,7 +14,7 @@ interface MovieProps {
   genre?: string[];
   tone?: string[];
   theme?: string[];
-  type?: 'movie' | 'show';
+  type?: 'movie' | 'show' | 'anime';
   onSave?: () => void;
   onClick?: () => void;
   onFeedback?: (type: 'like' | 'dislike' | 'info', title: string) => void;
@@ -77,8 +77,10 @@ export function EnhancedMovieCard({
             >
               {type === 'movie' ? (
                 <Film className="h-3 w-3 mr-1" />
-              ) : (
+              ) : type === 'show' ? (
                 <Tv className="h-3 w-3 mr-1" />
+              ) : (
+                <Film className="h-3 w-3 mr-1" />
               )}
               <span className="capitalize">{type}</span>
             </Badge>
