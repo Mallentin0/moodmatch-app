@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 interface Movie {
   title: string;
@@ -21,23 +22,30 @@ interface Movie {
   tone?: string[];
 }
 
+const REFINEMENT_OPTIONS = [
+  { label: "More like this", prompt: "similar to the current recommendations" },
+  { label: "Funnier", prompt: "but funnier" },
+  { label: "More action", prompt: "with more action" },
+  { label: "More dramatic", prompt: "but more dramatic" },
+  { label: "More romantic", prompt: "with more romance" },
+];
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<Movie[]>([]);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const [lastPrompt, setLastPrompt] = useState("");
   const { toast } = useToast();
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-
+  const handleSearch = async (searchPrompt: string, isRefinement = false) => {
     setIsLoading(true);
-    console.log("Searching with prompt:", prompt);
+    const finalPrompt = isRefinement ? `${lastPrompt} ${searchPrompt}` : searchPrompt;
+    console.log("Searching with prompt:", finalPrompt);
     
     try {
       const { data, error } = await supabase.functions.invoke('search-movies', {
-        body: { prompt }
+        body: { prompt: finalPrompt }
       });
       
       if (error) {
@@ -70,6 +78,7 @@ const Index = () => {
       });
 
       setResults(sortedMovies);
+      setLastPrompt(finalPrompt);
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -81,6 +90,16 @@ const Index = () => {
       setIsLoading(false);
       setPrompt("");
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prompt.trim()) return;
+    handleSearch(prompt);
+  };
+
+  const handleRefinement = (refinementPrompt: string) => {
+    handleSearch(refinementPrompt, true);
   };
 
   const handleSave = async (movie: Movie) => {
@@ -125,7 +144,7 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex space-x-2 max-w-2xl mx-auto">
+            <form onSubmit={handleSubmit} className="flex space-x-2 max-w-2xl mx-auto">
               <Input
                 placeholder="E.g., 'A mind-bending sci-fi thriller'"
                 value={prompt}
@@ -143,6 +162,21 @@ const Index = () => {
             </form>
           </CardContent>
         </Card>
+
+        {results.length > 0 && (
+          <div className="flex flex-wrap gap-2 justify-center">
+            {REFINEMENT_OPTIONS.map((option) => (
+              <Badge
+                key={option.label}
+                variant="secondary"
+                className="cursor-pointer hover:bg-primary/20 transition-colors"
+                onClick={() => handleRefinement(option.prompt)}
+              >
+                {option.label}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         <MovieResults 
           isLoading={isLoading}
