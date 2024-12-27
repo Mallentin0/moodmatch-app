@@ -15,6 +15,7 @@ interface Movie {
   poster: string;
   synopsis: string;
   streaming?: string[];
+  theme?: string[];
 }
 
 const Index = () => {
@@ -54,8 +55,18 @@ const Index = () => {
         return;
       }
 
-      console.log("Setting results:", data.movies);
-      setResults(data.movies);
+      // Sort movies to prioritize those with themes
+      const sortedMovies = [...data.movies].sort((a, b) => {
+        const aHasThemes = a.theme && a.theme.length > 0;
+        const bHasThemes = b.theme && b.theme.length > 0;
+        
+        if (aHasThemes && !bHasThemes) return -1;
+        if (!aHasThemes && bHasThemes) return 1;
+        return 0;
+      });
+
+      console.log("Setting sorted results:", sortedMovies);
+      setResults(sortedMovies);
     } catch (error) {
       console.error('Error:', error);
       toast({
