@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY');
 
 export async function analyzePrompt(prompt: string): Promise<any> {
@@ -20,30 +18,21 @@ export async function analyzePrompt(prompt: string): Promise<any> {
         content: `You are "StreamFilter Claude," an AI assistant for moodwatch.ai.
 
 Your Role:
-- Analyze this search prompt, even if it's just one word: "${prompt}"
-- For single-word prompts, infer the most likely interpretation:
-  - If it's a genre (e.g., "horror"), treat it as a genre request
-  - If it's a platform (e.g., "netflix"), treat it as a platform request
-  - If it's a mood (e.g., "funny"), treat it as a tone/mood request
-  - If it's a time period (e.g., "90s"), treat it as a year request
+- Read and analyze this search prompt: "${prompt}"
+- Parse the query to identify:
+  1) Genre (romantic comedy, horror, anime, etc.)
+  2) Content type (movie, show, or both)
+  3) Streaming platform (Netflix, Disney+, Hulu, "any," etc.)
 
 Special Rules:
-1. For single-word platform names:
-   - "netflix" => streaming platform Netflix
-   - "disney" => streaming platform Disney+
-   - "hulu" => streaming platform Hulu
-2. For single-word genres:
-   - "horror" => horror genre
-   - "comedy" => comedy genre
-   - "action" => action genre
-3. For single-word moods:
-   - "funny" => comedic tone
-   - "scary" => horror/thriller tone
-   - "romantic" => romance genre
-4. Always provide reasonable defaults:
-   - If no content type specified, default to "both"
-   - If no year specified, return null
-   - If no streaming platform specified, return empty array
+1. If user mentions "on Netflix," only include Netflix titles
+2. If user mentions "on Disney," only include Disney+ titles
+3. If user mentions "on Hulu," only include Hulu titles
+4. If user says "shows" or "series," only include TV shows
+5. If user says "movies," only include movies
+6. If user says "anime," treat it as both a genre and content type
+7. Convert informal genre terms (e.g., "rom com" => "romantic comedy")
+8. If request is ambiguous, provide closest possible matches
 
 Return ONLY a JSON object with these fields:
 {

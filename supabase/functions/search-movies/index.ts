@@ -22,11 +22,19 @@ serve(async (req) => {
     const searchParams = await analyzePrompt(prompt);
     console.log('Parsed search parameters:', searchParams);
 
+    // Extract streaming platforms from the prompt
+    const streamingPlatforms = [
+      'Netflix', 'Hulu', 'Amazon Prime Video', 'Disney+', 
+      'HBO Max', 'Apple TV+', 'Paramount+', 'Peacock', 'Crunchyroll'
+    ].filter(platform => 
+      prompt.toLowerCase().includes(platform.toLowerCase())
+    );
+
     // Get multiple random pages to increase variety
     const pages = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1);
     const allResults = [];
     
-    // Fetch content from multiple pages
+    // Fetch movies from multiple pages
     for (const page of pages) {
       const searchUrl = buildSearchUrl(searchParams, page);
       console.log(`TMDB URL for page ${page}:`, searchUrl);
@@ -38,38 +46,44 @@ serve(async (req) => {
       }
     }
 
-    // If no results found, return a specific error message
+    // If no results found, try a broader search
     if (allResults.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: "No results found",
-          message: "Could you be more descriptive? Try adding details like genre, time period, or mood. For example: 'funny romantic movies from the 90s' or 'dark sci-fi shows on Netflix'",
-          movies: []
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 // Using 200 to handle this gracefully on the frontend
-        }
-      );
+      console.log('No results found, trying broader search...');
+      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 5) + 1);
+      const fallbackData = await searchMovies(fallbackUrl);
+      allResults.push(...fallbackData.results);
     }
 
-    // Shuffle and take initial results
+    // Shuffle and take 6 random results
     const shuffledResults = allResults
       .sort(() => Math.random() - 0.5)
-      .slice(0, 12);
+      .slice(0, 12); // Get more results initially to filter by streaming
 
-    // Transform and filter the results
+    // Transform and filter the results based on streaming platforms
     const movies: MovieResult[] = await Promise.all(
       shuffledResults.map(async (movie: any) => {
-        console.log('Processing movie:', movie.title || movie.name);
+        console.log('Processing movie:', movie.title);
         const details = await fetchMovieDetails(movie.id);
         
         // Extract streaming providers (US region)
         const providers = details['watch/providers']?.results?.US?.flatrate || [];
         const movieStreamingPlatforms = providers.map((p: any) => p.provider_name);
 
+        // If streaming platforms were specified in the prompt, check if the movie is available on any of them
+        if (streamingPlatforms.length > 0) {
+          const hasRequestedPlatform = movieStreamingPlatforms.some(platform =>
+            streamingPlatforms.some(requested => 
+              platform.toLowerCase().includes(requested.toLowerCase())
+            )
+          );
+          
+          if (!hasRequestedPlatform) {
+            return null; // Skip this movie if it's not available on requested platforms
+          }
+        }
+        
         return {
-          title: movie.title || movie.name,
+          title: movie.title,
           year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
           poster: movie.poster_path 
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
@@ -95,16 +109,36 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in search-movies function:', error);
     
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to get movie recommendations',
-        message: 'Please try being more specific in your search. For example: "action movies from 2020" or "romantic comedies on Netflix"',
-        movies: []
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+    // Return random popular movies in case of error
+    try {
+      const fallbackUrl = buildSearchUrl({}, Math.floor(Math.random() * 10) + 1);
+      const fallbackData = await searchMovies(fallbackUrl);
+      
+      const movies = fallbackData.results
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 6)
+        .map((movie: any) => ({
+          title: movie.title,
+          year: movie.release_date ? movie.release_date.split('-')[0] : 'N/A',
+          poster: movie.poster_path 
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : 'https://via.placeholder.com/500x750?text=No+Poster',
+          synopsis: movie.overview || 'No synopsis available',
+          streaming: []
+        }));
+
+      return new Response(
+        JSON.stringify({ movies }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (fallbackError) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to get movie recommendations' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
   }
 });

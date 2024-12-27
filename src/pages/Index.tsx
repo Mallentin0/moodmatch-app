@@ -36,12 +36,10 @@ const Index = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [lastPrompt, setLastPrompt] = useState("");
-  const [error, setError] = useState<{ message: string } | null>(null);
   const { toast } = useToast();
 
   const handleSearch = async (searchPrompt: string, isRefinement = false) => {
     setIsLoading(true);
-    setError(null);
     const finalPrompt = isRefinement ? `${lastPrompt} ${searchPrompt}` : searchPrompt;
     console.log("Searching with prompt:", finalPrompt);
     
@@ -52,19 +50,21 @@ const Index = () => {
       
       if (error) {
         console.error('Error searching movies:', error);
-        setError({ message: error.message || "Failed to get movie recommendations. Please try again." });
+        toast({
+          title: "Error",
+          description: "Failed to get movie recommendations. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
-      if (!data?.movies) {
+      if (!data?.movies || !Array.isArray(data.movies)) {
         console.error('Invalid response format:', data);
-        setError({ message: data?.message || "Received invalid response format from server" });
-        return;
-      }
-
-      if (data.error) {
-        setError({ message: data.message });
-        setResults([]);
+        toast({
+          title: "Error",
+          description: "Received invalid response format from server",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -81,7 +81,11 @@ const Index = () => {
       setLastPrompt(finalPrompt);
     } catch (error) {
       console.error('Error:', error);
-      setError({ message: "Something went wrong. Please try again." });
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
       setPrompt("");
@@ -159,7 +163,7 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        {results.length > 0 && !error && (
+        {results.length > 0 && (
           <div className="flex flex-wrap gap-3 justify-center py-4 px-6 bg-card/50 rounded-lg backdrop-blur-sm border border-primary/10 shadow-lg animate-fade-in">
             {REFINEMENT_OPTIONS.map((option) => (
               <Badge
@@ -178,7 +182,6 @@ const Index = () => {
           isLoading={isLoading}
           results={results}
           onSaveMovie={handleSave}
-          error={error}
         />
       </main>
 

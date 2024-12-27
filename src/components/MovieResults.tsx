@@ -3,7 +3,6 @@ import { EnhancedMovieCard } from "@/components/EnhancedMovieCard";
 import { LoadingState } from "@/components/LoadingState";
 import { MovieDialog } from "@/components/MovieDialog";
 import { useState } from "react";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
 
 interface Movie {
   title: string;
@@ -20,12 +19,9 @@ interface MovieResultsProps {
   isLoading: boolean;
   results: Movie[];
   onSaveMovie: (movie: Movie) => void;
-  error?: {
-    message: string;
-  };
 }
 
-export function MovieResults({ isLoading, results, onSaveMovie, error }: MovieResultsProps) {
+export function MovieResults({ isLoading, results, onSaveMovie }: MovieResultsProps) {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -39,22 +35,6 @@ export function MovieResults({ isLoading, results, onSaveMovie, error }: MovieRe
       <AnimatePresence mode="wait">
         {isLoading ? (
           <LoadingState key="loading" />
-        ) : error ? (
-          <motion.div
-            key="error"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-2xl mx-auto mt-8"
-          >
-            <Card className="bg-muted/50 border-primary/20">
-              <CardContent className="pt-6">
-                <CardDescription className="text-center text-base">
-                  {error.message}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </motion.div>
         ) : results.length > 0 ? (
           <motion.div
             key="results"
