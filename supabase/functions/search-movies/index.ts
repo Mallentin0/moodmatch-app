@@ -14,37 +14,53 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, includeShows = true } = await req.json();
-    console.log('Received search prompt:', prompt, 'Include shows:', includeShows);
+    const { prompt } = await req.json();
+    console.log('Received search prompt:', prompt);
 
     const searchParams = await analyzePrompt(prompt);
     console.log('Parsed search parameters:', searchParams);
 
     // Search for movies
-    const movieSearchUrl = buildSearchUrl(searchParams, 1);
+    const movieSearchUrl = buildSearchUrl(searchParams, 1, 'movie');
     const movieResults = await searchMovies(movieSearchUrl);
     let movies = await Promise.all(
       movieResults.results.slice(0, 3).map(async (movie: any) => {
-        const details = await fetchMovieDetails(movie.id);
-        return enrichWithOMDbData(details, 'movie');
+        const details = await fetchMovieDetails(movie.id, 'movie');
+        const enriched = await enrichWithOMDbData({
+          title: details.title,
+          year: details.release_date?.split('-')[0] || '',
+          poster: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
+          synopsis: details.overview,
+          genre: details.genres?.map((g: any) => g.name) || [],
+          streaming: details.watch_providers?.results?.US?.flatrate?.map((p: any) => p.provider_name) || [],
+          type: 'movie'
+        });
+        return enriched;
       })
     );
 
-    // If includeShows is true, also search for TV shows
-    let shows: any[] = [];
-    if (includeShows) {
-      const showSearchUrl = buildSearchUrl({ ...searchParams, mediaType: 'tv' }, 1);
-      const showResults = await searchMovies(showSearchUrl);
-      shows = await Promise.all(
-        showResults.results.slice(0, 3).map(async (show: any) => {
-          const details = await fetchMovieDetails(show.id);
-          return enrichWithOMDbData(details, 'show');
-        })
-      );
-    }
+    // Search for TV shows
+    const showSearchUrl = buildSearchUrl(searchParams, 1, 'tv');
+    const showResults = await searchMovies(showSearchUrl);
+    let shows = await Promise.all(
+      showResults.results.slice(0, 3).map(async (show: any) => {
+        const details = await fetchMovieDetails(show.id, 'tv');
+        const enriched = await enrichWithOMDbData({
+          title: details.name,
+          year: details.first_air_date?.split('-')[0] || '',
+          poster: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
+          synopsis: details.overview,
+          genre: details.genres?.map((g: any) => g.name) || [],
+          streaming: details.watch_providers?.results?.US?.flatrate?.map((p: any) => p.provider_name) || [],
+          type: 'show'
+        });
+        return enriched;
+      })
+    );
 
     // Combine and shuffle results
     const allResults = [...movies, ...shows].sort(() => Math.random() - 0.5);
+    console.log('Combined results:', allResults);
 
     return new Response(
       JSON.stringify({ movies: allResults }),

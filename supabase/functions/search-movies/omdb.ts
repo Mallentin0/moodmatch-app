@@ -9,6 +9,7 @@ interface Movie {
   genre?: string[];
   tone?: string[];
   theme?: string[];
+  type?: 'movie' | 'show';
   ratings?: {
     source: string;
     value: string;
@@ -21,7 +22,7 @@ interface Movie {
 export async function enrichWithOMDbData(movie: Movie): Promise<Movie> {
   try {
     const response = await fetch(
-      `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(movie.title)}&y=${movie.year}`,
+      `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(movie.title)}&y=${movie.year}&type=${movie.type === 'show' ? 'series' : 'movie'}`,
       {
         method: 'GET',
         headers: {
