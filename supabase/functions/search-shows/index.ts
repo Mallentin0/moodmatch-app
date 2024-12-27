@@ -11,6 +11,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,8 +40,8 @@ serve(async (req) => {
     );
     const tmdbData = await tmdbResponse.json();
     
-    // Get initial results from TMDB
-    const tmdbShows = await Promise.all(tmdbData.results.slice(0, 3).map(async (show: any) => {
+    // Process TMDB results
+    const tmdbShows = await Promise.all((tmdbData.results || []).slice(0, 3).map(async (show: any) => {
       try {
         // Get additional details from OMDB
         const omdbResponse = await fetch(
@@ -73,32 +74,33 @@ serve(async (req) => {
     );
     const omdbData = await omdbResponse.json();
     
-    const omdbShows = omdbData.Search 
-      ? await Promise.all(omdbData.Search.slice(0, 3).map(async (show: any) => {
-          try {
-            // Get full details for each show
-            const detailsResponse = await fetch(
-              `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series`
-            );
-            const details = await detailsResponse.json();
+    // Process OMDB results
+    const omdbShows = await Promise.all(
+      (omdbData.Search || []).slice(0, 3).map(async (show: any) => {
+        try {
+          // Get full details for each show
+          const detailsResponse = await fetch(
+            `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${show.imdbID}&type=series`
+          );
+          const details = await detailsResponse.json();
 
-            return {
-              title: show.Title,
-              year: show.Year.split('–')[0],
-              poster: show.Poster !== 'N/A' ? show.Poster : 'https://via.placeholder.com/500x750?text=No+Poster',
-              synopsis: details.Plot || 'No synopsis available',
-              streaming: [],
-              genre: details.Genre ? details.Genre.split(', ') : [],
-              tone: searchParams.mood ? [searchParams.mood] : [],
-              theme: details.Genre ? details.Genre.split(', ') : [],
-              type: 'show' as const
-            };
-          } catch (error) {
-            console.error('Error processing OMDB show:', error);
-            return null;
-          }
-        }))
-      : [];
+          return {
+            title: show.Title,
+            year: show.Year.split('–')[0],
+            poster: show.Poster !== 'N/A' ? show.Poster : 'https://via.placeholder.com/500x750?text=No+Poster',
+            synopsis: details.Plot || 'No synopsis available',
+            streaming: [],
+            genre: details.Genre ? details.Genre.split(', ') : [],
+            tone: searchParams.mood ? [searchParams.mood] : [],
+            theme: details.Genre ? details.Genre.split(', ') : [],
+            type: 'show' as const
+          };
+        } catch (error) {
+          console.error('Error processing OMDB show:', error);
+          return null;
+        }
+      })
+    );
 
     // Combine and deduplicate results, filtering out null values
     const allShows = [...tmdbShows, ...omdbShows]
